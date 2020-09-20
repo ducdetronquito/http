@@ -1,10 +1,3 @@
-const std = @import("std");
-const testing = std.testing;
-
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
-
-test "basic add functionality" {
-    testing.expect(add(3, 7) == 10);
-}
+pub const HeaderMap = @import("headers.zig").HeaderMap;
+pub const Request = @import("request.zig").Request;
+pub const Uri = @import("uri.zig").Uri;
