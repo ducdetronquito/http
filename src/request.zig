@@ -3,6 +3,7 @@ const HeaderMap = @import("headers.zig").HeaderMap;
 const Method = @import("methods.zig").Method;
 const std = @import("std");
 const Uri = @import("uri.zig").Uri;
+const Version = @import("versions.zig").Version;
 
 
 pub const RequestError = error {
@@ -14,7 +15,7 @@ const Head = struct {
     allocator: *Allocator,
     method: Method,
     uri: Uri,
-    version: []const u8,
+    version: Version,
     headers: HeaderMap,
 
     pub fn deinit(self: *Head) void {
@@ -32,7 +33,7 @@ const Builder = struct {
             .allocator = allocator,
             .method = Method.Get,
             .uri = Uri { .value = ""},
-            .version = "HTTP/1.1",
+            .version = Version.Http11,
             .headers = HeaderMap.init(allocator),
         };
         return Builder {
@@ -158,6 +159,14 @@ const Builder = struct {
         self._head.uri = Uri.parse(value);
         return self;
     }
+
+    pub fn version(self: *Builder, value: Version) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+        self._head.version = value;
+        return self;
+    }
 };
 
 
@@ -182,7 +191,7 @@ test "Build a default request" {
     defer request.deinit();
 
     expect(request.head.method == Method.Get);
-    expect(std.mem.eql(u8, request.head.version, "HTTP/1.1"));
+    expect(request.head.version == .Http11);
     expect(std.mem.eql(u8, request.head.uri.value, ""));
     expect(std.mem.eql(u8, request.body, ""));
     expect(request.head.headers.entries.len == 0);
@@ -197,7 +206,7 @@ test "Build a request" {
     defer request.deinit();
 
     expect(request.head.method == Method.Get);
-    expect(std.mem.eql(u8, request.head.version, "HTTP/1.1"));
+    expect(request.head.version == .Http11);
     expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
     expect(std.mem.eql(u8, request.body, ""));
 
@@ -220,6 +229,14 @@ test "Build a request with method custom method" {
     }
 }
 
+test "Build a request with a specific HTTP version" {
+    var request = try Request.builder(std.testing.allocator)
+        .version(.Http2)
+        .body("");
+    defer request.deinit();
+
+    expect(request.head.version == .Http2);
+}
 
 test "Build a Connect request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).connect("https://ziglang.org/").body("");
