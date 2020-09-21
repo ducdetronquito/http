@@ -24,7 +24,7 @@ const Head = struct {
 
 
 const Builder = struct {
-    head: Head,
+    _head: Head,
     build_error: ?RequestError,
 
     pub fn default(allocator: *Allocator) Builder {
@@ -36,40 +36,13 @@ const Builder = struct {
             .headers = HeaderMap.init(allocator),
         };
         return Builder {
-            .head = default_head,
+            ._head = default_head,
             .build_error = null,
         };
     }
 
-    pub fn method(self: *Builder, value: Method) *Builder {
-        if (self.build_has_failed()) {
-            return self;
-        }
-        self.head.method = value;
-        return self;
-    }
-
-    pub fn uri(self: *Builder, value: []const u8) *Builder {
-        if (self.build_has_failed()) {
-            return self;
-        }
-        self.head.uri = Uri.parse(value);
-        return self;
-    }
-
-    pub fn header(self: *Builder, name: []const u8, value: []const u8) *Builder {
-        if (self.build_has_failed()) {
-            return self;
-        }
-
-        _ = self.head.headers.put(name, value) catch {
-            self.build_error = error.Invalid;
-        };
-        return self;
-    }
-
     pub fn deinit(self: *Builder) void {
-        self.head.deinit();
+        self._head.deinit();
     }
 
     inline fn build_has_failed(self: *Builder) bool {
@@ -82,9 +55,108 @@ const Builder = struct {
         }
 
         return Request {
-            .head = self.head,
+            .head = self._head,
             .body = value
         };
+    }
+
+    pub fn connect(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Connect).uri(_uri);
+    }
+
+    pub fn delete(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Delete).uri(_uri);
+    }
+
+    pub fn get(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Get).uri(_uri);
+    }
+
+    pub fn head(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Head).uri(_uri);
+    }
+
+    pub fn header(self: *Builder, name: []const u8, value: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        _ = self._head.headers.put(name, value) catch {
+            self.build_error = error.Invalid;
+        };
+        return self;
+    }
+
+    pub fn method(self: *Builder, value: Method) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+        self._head.method = value;
+        return self;
+    }
+
+    pub fn options(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Options).uri(_uri);
+    }
+
+    pub fn patch(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Patch).uri(_uri);
+    }
+
+    pub fn post(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Post).uri(_uri);
+    }
+
+    pub fn put(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Put).uri(_uri);
+    }
+
+    pub fn trace(self: *Builder, _uri: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+
+        return self.method(.Trace).uri(_uri);
+    }
+
+    pub fn uri(self: *Builder, value: []const u8) *Builder {
+        if (self.build_has_failed()) {
+            return self;
+        }
+        self._head.uri = Uri.parse(value);
+        return self;
     }
 };
 
@@ -146,4 +218,77 @@ test "Build a request with method custom method" {
         },
         else => unreachable,
     }
+}
+
+
+test "Build a Connect request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).connect("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Connect);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build a Delete request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).delete("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Delete);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build a Get request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).get("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Get);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build an Head request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).head("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Head);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build an Options request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).options("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Options);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build an Patch request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).patch("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Patch);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build a Post request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).post("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Post);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build a Put request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).put("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Put);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
+}
+
+test "Build a Trace request with the shortcut method" {
+    var request = try Request.builder(std.testing.allocator).trace("https://ziglang.org/").body("");
+    defer request.deinit();
+
+    expect(request.head.method == .Trace);
+    expect(std.mem.eql(u8, request.head.uri.value, "https://ziglang.org/"));
 }

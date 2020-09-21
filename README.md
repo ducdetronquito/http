@@ -7,12 +7,26 @@ HTTP core types for Zig inspired by Rust [http](https://github.com/hyperium/http
 
 # Usage
 
+## Request
+```zig
+const Request = @import("http").Request;
+const std = @import("std");
+
+var request = try Request.builder(std.testing.allocator)
+    .get("https://ziglang.org/")
+    .header("GOTTA GO", "FAST")
+    .body("");
+defer request.deinit();
+```
+
+## Request with a custom method
 ```zig
 const Method = @import("http").Method;
 const Request = @import("http").Request;
+const std = @import("std");
 
 var request = try Request.builder(std.testing.allocator)
-    .method(.Get)
+    .method(Method {.Custom = "LAUNCH-MISSILE"})
     .uri("https://ziglang.org/")
     .header("GOTTA GO", "FAST")
     .body("");
