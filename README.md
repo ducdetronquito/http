@@ -43,7 +43,7 @@ defer response.deinit();
 ##### An HTTP header multi-map.
 
 As of yet, the headers map is a dumb StringHashMap used only to validate *http*'s API.
-At some point, we aim to provide an implementation that is RFC compliant.
+At some point, we aim to provide an implementation that is RFC compliant (tracked in issue [#2](https://github.com/ducdetronquito/http/issues/2)).
 
 
 #### `Request`
@@ -242,7 +242,7 @@ fn version(self: *ResponseBuilder, value: Version) *ResponseBuilder
 #### `Uri`
 ##### A valid URI object
 
-As of yet, the Uri map is a dumb struct used only to validate http's API. At some point, we aim to provide an implementation that is RFC compliant.
+As of yet, the Uri map is a dumb struct used only to validate http's API. At some point, we aim to provide an implementation that is RFC compliant (tracked in issue [#1](https://github.com/ducdetronquito/http/issues/1)).
 
 ```zig
 // Parse and validate a string into a Uri object
