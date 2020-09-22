@@ -20,6 +20,20 @@ var request = try Request.builder(std.testing.allocator)
 defer request.deinit();
 ```
 
+Create an HTTP response
+
+```zig
+const Response = @import("http").Request;
+const StatusCode = @import("http").StatusCode;
+const std = @import("std");
+
+var response = try Response.builder(std.testing.allocator)
+    .status(.Ok)
+    .header("GOTTA GO", "FAST")
+    .body("");
+defer response.deinit();
+```
+
 ## API Reference
 
 ### Structures
@@ -156,6 +170,75 @@ fn uri(self: *RequestBuilder, value: []const u8) *RequestBuilder
 fn version(self: *RequestBuilder, value: Version) *RequestBuilder
 ```
 
+#### `Response`
+##### An HTTP response object produced by the response builder.
+
+
+```zig
+// The default constructor to start building a response
+fn builder(allocator: *Allocator) ResponseBuilder
+```
+
+```zig
+// Release the memory allocated by the header map
+fn deinit(self: *Response) void
+```
+
+```zig
+// Returns the response's payload
+fn body(self: *Response) []const u8
+```
+
+```zig
+// Returns the response's header map
+fn headers(self: *Response) HeaderMap
+```
+
+```zig
+// Returns the response's status code
+fn status(self: *Response) StatusCode
+```
+
+```zig
+// Returns the response's protocol version
+fn version(self: *Response) Version
+```
+
+#### `ResponseBuilder`
+##### The response builder.
+
+```zig
+// The default constructor
+default(allocator: *Allocator) ResponseBuilder
+```
+
+```zig
+// Release the memory allocated by the header map
+fn deinit(self: *ResponseBuilder) void
+```
+
+```zig
+// Set the response's payload.
+// This function returns the final response objet or a potential error
+// collected during the build steps
+fn body(self: *ResponseBuilder, value: []const u8) ResponseError!Response
+```
+
+```zig
+// Set a response header name and value
+fn header(self: *ResponseBuilder, name: []const u8, value: []const u8) *ResponseBuilder
+```
+
+```zig
+// Set the response's status code
+fn status(self: *ResponseBuilder, value: StatusCode) *ResponseBuilder
+```
+
+```zig
+// Set the response's protocol version
+fn version(self: *ResponseBuilder, value: Version) *ResponseBuilder
+```
+
 #### `Uri`
 ##### A valid URI object
 
@@ -168,16 +251,8 @@ fn parse(uri: []const u8) Uri
 
 ### Enumerations
 
-#### `Version`
-##### The available protocol versions.
-- Http09
-- Http10
-- Http11
-- Http2
-- Http3
-
 #### `Method`
-##### The available HTTP methods.
+##### The available request methods.
 - Connect
 - Custom
 - Delete
@@ -189,9 +264,26 @@ fn parse(uri: []const u8) Uri
 - Put
 - Trace
 
+#### `StatusCode`
+##### The available response status codes.
+
+A lot; the list is available on [MDN](https://developer.mozilla.org/fr/docs/Web/HTTP/Status).
+
+#### `Version`
+##### The available protocol versions.
+- Http09
+- Http10
+- Http11
+- Http2
+- Http3
+
+
 ### Errors
 
 ##### `RequestError`
+- Invalid
+
+##### `ResponseError`
 - Invalid
 
 ## Requirements
