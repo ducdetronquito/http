@@ -206,36 +206,37 @@ pub const Request = struct {
 
 const expect = std.testing.expect;
 
-test "Build a default request" {
+test "Request - Build with default values" {
     var request = try Request.builder(std.testing.allocator).body("");
     defer request.deinit();
 
     expect(request.method() == Method.Get);
     expect(request.version() == .Http11);
     expect(std.mem.eql(u8, request.uri().value, ""));
-    expect(std.mem.eql(u8, request.body(), ""));
     expect(request.headers().entries.len == 0);
+    expect(std.mem.eql(u8, request.body(), ""));
 }
 
-test "Build a request" {
+test "Request - Build with specific values" {
     var request = try Request.builder(std.testing.allocator)
         .method(Method.Get)
         .uri("https://ziglang.org/")
+        .version(.Http11)
         .header("GOTTA GO", "FAST")
-        .body("");
+        .body("ᕕ( ᐛ )ᕗ");
     defer request.deinit();
 
     expect(request.method() == Method.Get);
     expect(request.version() == .Http11);
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
-    expect(std.mem.eql(u8, request.body(), ""));
+    expect(std.mem.eql(u8, request.body(), "ᕕ( ᐛ )ᕗ"));
 
     var header = request.headers().get("GOTTA GO").?;
     expect(std.mem.eql(u8, header.key, "GOTTA GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
-test "Build a request with method custom method" {
+test "Request - Build with a custom method" {
     var request = try Request.builder(std.testing.allocator)
         .method(Method { .Custom = "LAUNCH-MISSILE"})
         .body("");
@@ -249,16 +250,7 @@ test "Build a request with method custom method" {
     }
 }
 
-test "Build a request with a specific HTTP version" {
-    var request = try Request.builder(std.testing.allocator)
-        .version(.Http2)
-        .body("");
-    defer request.deinit();
-
-    expect(request.version() == .Http2);
-}
-
-test "Build a Connect request with the shortcut method" {
+test "REquest - Build a CONNECT request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).connect("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -266,7 +258,7 @@ test "Build a Connect request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build a Delete request with the shortcut method" {
+test "Request - Build a DELETE request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).delete("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -274,7 +266,7 @@ test "Build a Delete request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build a Get request with the shortcut method" {
+test "Request - Build a GET request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).get("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -282,7 +274,7 @@ test "Build a Get request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build an Head request with the shortcut method" {
+test "Request - Build an HEAD request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).head("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -290,7 +282,7 @@ test "Build an Head request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build an Options request with the shortcut method" {
+test "Request - Build an OPTIONS request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).options("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -298,7 +290,7 @@ test "Build an Options request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build an Patch request with the shortcut method" {
+test "Request - Build an PATCH request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).patch("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -306,7 +298,7 @@ test "Build an Patch request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build a Post request with the shortcut method" {
+test "Request - Build a POST request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).post("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -314,7 +306,7 @@ test "Build a Post request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build a Put request with the shortcut method" {
+test "Request - Build a PUT request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).put("https://ziglang.org/").body("");
     defer request.deinit();
 
@@ -322,7 +314,7 @@ test "Build a Put request with the shortcut method" {
     expect(std.mem.eql(u8, request.uri().value, "https://ziglang.org/"));
 }
 
-test "Build a Trace request with the shortcut method" {
+test "Request - Build a TRACE request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).trace("https://ziglang.org/").body("");
     defer request.deinit();
 
