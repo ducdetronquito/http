@@ -117,7 +117,7 @@ pub const Response = struct {
 const expect = std.testing.expect;
 const expectError = std.testing.expectError;
 
-test "Response - Build with default values" {
+test "Build with default values" {
     var response = try Response.builder(std.testing.allocator).body("");
     defer response.deinit();
 
@@ -127,7 +127,7 @@ test "Response - Build with default values" {
     expect(std.mem.eql(u8, response.body(), ""));
 }
 
-test "Response - Build with specific values" {
+test "Build with specific values" {
     var response = try Response.builder(std.testing.allocator)
         .version(.Http11)
         .status(.ImATeapot)
@@ -144,7 +144,7 @@ test "Response - Build with specific values" {
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
-test "Response - Build with a custom status code" {
+test "Build with a custom status code" {
     var custom_status = try StatusCode.from_u16(536);
     var response = try Response.builder(std.testing.allocator)
         .version(.Http11)
@@ -162,7 +162,7 @@ test "Response - Build with a custom status code" {
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
-test "Response - Fail to build when out of memory" {
+test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
     const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
     var response = Response.builder(allocator)

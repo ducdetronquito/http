@@ -460,7 +460,7 @@ pub const Uri = struct {
     }
 };
 
-test "basic url" {
+test "Parse a basic url" {
     const uri = try Uri.parse("https://ziglang.org:80/documentation/master/?test#toc-Introduction", false);
     expect(mem.eql(u8, uri.scheme, "https"));
     expect(mem.eql(u8, uri.username, ""));
@@ -473,7 +473,7 @@ test "basic url" {
     expect(uri.len == 66);
 }
 
-test "short" {
+test "Parse an IP address" {
     const uri = try Uri.parse("telnet://192.0.2.16:80/", false);
     expect(mem.eql(u8, uri.scheme, "telnet"));
     expect(mem.eql(u8, uri.username, ""));
@@ -488,7 +488,7 @@ test "short" {
     expect(uri.len == 23);
 }
 
-test "single char" {
+test "Parse a single char" {
     const uri = try Uri.parse("a", false);
     expect(mem.eql(u8, uri.scheme, ""));
     expect(mem.eql(u8, uri.username, ""));
@@ -501,7 +501,7 @@ test "single char" {
     expect(uri.len == 1);
 }
 
-test "ipv6" {
+test "Parse an IPv6 address" {
     const uri = try Uri.parse("ldap://[2001:db8::7]/c=GB?objectClass?one", false);
     expect(mem.eql(u8, uri.scheme, "ldap"));
     expect(mem.eql(u8, uri.username, ""));
@@ -516,7 +516,7 @@ test "ipv6" {
     expect(uri.len == 41);
 }
 
-test "mailto" {
+test "Parse a mailto" {
     const uri = try Uri.parse("mailto:John.Doe@example.com", false);
     expect(mem.eql(u8, uri.scheme, "mailto"));
     expect(mem.eql(u8, uri.username, ""));
@@ -529,7 +529,7 @@ test "mailto" {
     expect(uri.len == 27);
 }
 
-test "tel" {
+test "Parse a tel" {
     const uri = try Uri.parse("tel:+1-816-555-1212", false);
     expect(mem.eql(u8, uri.scheme, "tel"));
     expect(mem.eql(u8, uri.username, ""));
@@ -542,7 +542,7 @@ test "tel" {
     expect(uri.len == 19);
 }
 
-test "urn" {
+test "Parse a urn" {
     const uri = try Uri.parse("urn:oasis:names:specification:docbook:dtd:xml:4.1.2", false);
     expect(mem.eql(u8, uri.scheme, "urn"));
     expect(mem.eql(u8, uri.username, ""));
@@ -555,7 +555,7 @@ test "urn" {
     expect(uri.len == 51);
 }
 
-test "userinfo" {
+test "Parse authentication information" {
     const uri = try Uri.parse("ftp://username:password@host.com/", false);
     expect(mem.eql(u8, uri.scheme, "ftp"));
     expect(mem.eql(u8, uri.username, "username"));
@@ -568,7 +568,7 @@ test "userinfo" {
     expect(uri.len == 33);
 }
 
-test "map query" {
+test "Map query parameters" {
     const uri = try Uri.parse("https://ziglang.org:80/documentation/master/?test;1=true&false#toc-Introduction", false);
     expect(mem.eql(u8, uri.scheme, "https"));
     expect(mem.eql(u8, uri.username, ""));
@@ -585,7 +585,7 @@ test "map query" {
     expect(mem.eql(u8, map.get("false").?.value, ""));
 }
 
-test "ends in space" {
+test "Parse ends at the first whitespace" {
     const uri = try Uri.parse("https://ziglang.org/documentation/master/ something else", false);
     expect(mem.eql(u8, uri.scheme, "https"));
     expect(mem.eql(u8, uri.username, ""));
@@ -596,6 +596,7 @@ test "ends in space" {
 }
 
 test "assume auth" {
+    // TODO: Read the damn spec: I don't understand what is happening here.
     const uri = try Uri.parse("ziglang.org", true);
     expect(mem.eql(u8, uri.host.name, "ziglang.org"));
     expect(uri.len == 11);
@@ -604,17 +605,17 @@ test "assume auth" {
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const alloc = &arena.allocator;
 
-test "encode" {
+test "Encode" {
     const path = (try Uri.encode(alloc, "/안녕하세요.html")).?;
     expect(mem.eql(u8, path, "/%EC%95%88%EB%85%95%ED%95%98%EC%84%B8%EC%9A%94.html"));
 }
 
-test "decode" {
+test "Decode" {
     const path = (try Uri.decode(alloc, "/%EC%95%88%EB%85%95%ED%95%98%EC%84%B8%EC%9A%94.html")).?;
     expect(mem.eql(u8, path, "/안녕하세요.html"));
 }
 
-test "resolvePath" {
+test "Resolve paths" {
     var a = try Uri.resolvePath(alloc, "/a/b/..");
     expect(mem.eql(u8, a, "/a"));
     a = try Uri.resolvePath(alloc, "/a/b/../");
