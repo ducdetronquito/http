@@ -242,12 +242,7 @@ fn version(self: *ResponseBuilder, value: Version) *ResponseBuilder
 #### `Uri`
 ##### A valid URI object
 
-As of yet, the Uri map is a dumb struct used only to validate http's API. At some point, we aim to provide an implementation that is RFC compliant (tracked in issue [#1](https://github.com/ducdetronquito/http/issues/1)).
-
-```zig
-// Parse and validate a string into a Uri object
-fn parse(uri: []const u8) Uri
-```
+[Read more](https://github.com/ducdetronquito/http/blob/master/src/uri/README.md)
 
 ### Enumerations
 
@@ -281,10 +276,15 @@ A lot; the list is available on [MDN](https://developer.mozilla.org/fr/docs/Web/
 ### Errors
 
 ##### `RequestError`
-- Invalid
+
+- OutOfMemory
+- UriRequired
+- [URI errors](https://github.com/ducdetronquito/http/blob/master/src/uri/README.md#error)
+
 
 ##### `ResponseError`
-- Invalid
+
+- OutOfMemory
 
 ## Requirements
 
@@ -294,3 +294,4 @@ To work with *http* you will need the latest stable version of Zig, which is cur
 ## License
 
 *http* is released into the Public Domain. 🎉🍻
+The URI parser is a fork of Vexu's [zuri](https://github.com/Vexu/zuri) under the MIT License.

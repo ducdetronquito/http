@@ -1,11 +1,9 @@
 # Uri
 
-[URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) parser written in [Zig](https://ziglang.org/).
-
-Fork of Vexu's [zuri](https://github.com/Vexu/zuri) library.
+[URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) parser forked from Vexu's [zuri](https://github.com/Vexu/zuri) library.
 
 
-## Example
+## Usage
 
 ```Zig
 const uri = try Uri.parse("https://ziglang.org/documentation/master/#toc-Introduction");
