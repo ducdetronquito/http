@@ -1,12 +1,57 @@
-const std = @import("std");
-const mem = std.mem;
 const Allocator = std.mem.Allocator;
 const assert = std.debug.assert;
-const parseUnsigned = std.fmt.parseUnsigned;
-const net = std.net;
 const expect = std.testing.expect;
+const mem = std.mem;
+const net = std.net;
+const parseUnsigned = std.fmt.parseUnsigned;
+const std = @import("std");
+
 
 const ValueMap = std.StringHashMap([]const u8);
+
+pub const Host = union(enum) {
+    ip: net.Address,
+    name: []const u8,
+
+    pub fn equals(first: Host, second: Host) bool {
+        return switch (first) {
+            Host.ip => |firstIp| {
+                return switch (second) {
+                    Host.ip => |secondIp| net.Address.eql(firstIp, secondIp),
+                    Host.name => false,
+                };
+            },
+            Host.name => |firstName| {
+                return switch (second) {
+                    Host.ip => false,
+                    Host.name => |secondName| mem.eql(u8, firstName, secondName),
+                };
+            },
+        };
+    }
+};
+
+/// possible errors for mapQuery
+pub const MapError = error {
+    NoQuery,
+    OutOfMemory,
+};
+
+/// possible errors for decode and encode
+pub const EncodeError = error {
+    InvalidCharacter,
+    OutOfMemory,
+};
+
+/// possible errors for parse
+pub const Error = error {
+    /// input is not a valid uri due to a invalid character
+    /// mostly a result of invalid ipv6
+    InvalidCharacter,
+
+    /// given input was empty
+    EmptyUri,
+};
 
 pub const Uri = struct {
     scheme: []const u8,
@@ -18,18 +63,6 @@ pub const Uri = struct {
     query: []const u8,
     fragment: []const u8,
     len: usize,
-
-    /// possible uri host values
-    pub const Host = union(enum) {
-        ip: net.Address,
-        name: []const u8,
-    };
-
-    /// possible errors for mapQuery
-    pub const MapError = error{
-        NoQuery,
-        OutOfMemory,
-    };
 
     /// map query string into a hashmap of key value pairs with no value being an empty string
     pub fn mapQuery(allocator: *Allocator, query: []const u8) MapError!ValueMap {
@@ -61,12 +94,6 @@ pub const Uri = struct {
 
         return map;
     }
-
-    /// possible errors for decode and encode
-    pub const EncodeError = error{
-        InvalidCharacter,
-        OutOfMemory,
-    };
 
     /// decode path if it is percent encoded
     pub fn decode(allocator: *Allocator, path: []const u8) EncodeError!?[]u8 {
@@ -169,16 +196,6 @@ pub const Uri = struct {
 
         return allocator.realloc(buf, len) catch buf[0..len];
     }
-
-    /// possible errors for parse
-    pub const Error = error{
-        /// input is not a valid uri due to a invalid character
-        /// mostly a result of invalid ipv6
-        InvalidCharacter,
-
-        /// given input was empty
-        EmptyUri,
-    };
 
     /// parse URI from input
     /// empty input is an error
@@ -416,6 +433,31 @@ pub const Uri = struct {
             else => false,
         };
     }
+
+    pub fn equals(first: Uri, second: Uri) bool {
+        var hasSamePort = false;
+        if (first.port) |firstPort| {
+            if (second.port) |secondPort| {
+                hasSamePort = firstPort == secondPort;
+            }
+        }
+        else {
+            if (second.port == null) {
+                hasSamePort = true;
+            }
+        }
+        return (
+            first.len == second.len
+            and std.mem.eql(u8, first.scheme, second.scheme)
+            and Host.equals(first.host, second.host)
+            and hasSamePort
+            and std.mem.eql(u8, first.path, second.path)
+            and std.mem.eql(u8, first.query, second.query)
+            and std.mem.eql(u8, first.fragment, second.fragment)
+            and std.mem.eql(u8, first.username, second.username)
+            and std.mem.eql(u8, first.password, second.password)
+        );
+    }
 };
 
 test "basic url" {
@@ -538,9 +580,9 @@ test "map query" {
     expect(mem.eql(u8, uri.fragment, "toc-Introduction"));
     var map = try Uri.mapQuery(alloc, uri.query);
     defer map.deinit();
-    expect(mem.eql(u8, map.get("test").?, ""));
-    expect(mem.eql(u8, map.get("1").?, "true"));
-    expect(mem.eql(u8, map.get("false").?, ""));
+    expect(mem.eql(u8, map.get("test").?.value, ""));
+    expect(mem.eql(u8, map.get("1").?.value, "true"));
+    expect(mem.eql(u8, map.get("false").?.value, ""));
 }
 
 test "ends in space" {

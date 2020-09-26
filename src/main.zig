@@ -7,4 +7,5 @@ pub const Response = @import("response.zig").Response;
 pub const ResponseBuilder = @import("response.zig").ResponseBuilder;
 pub const ResponseError = @import("response.zig").ResponseError;
 pub const Uri = @import("uri.zig").Uri;
+pub const UriError = @import("uri.zig").UriError;
 pub const Version = @import("versions.zig").Version;
