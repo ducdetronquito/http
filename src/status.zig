@@ -71,7 +71,7 @@ pub const StatusCode = enum(u16) {
 
 const expectError = @import("std").testing.expectError;
 
-test "StatusCode - from_16 - Out of range integer returns a StatusCodeError" {
+test "from_16 - Out of range integer returns a StatusCodeError" {
     expectError(error.Invalid, StatusCode.from_u16(99));
     expectError(error.Invalid, StatusCode.from_u16(600));
 }

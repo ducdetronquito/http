@@ -6,7 +6,7 @@ const Version = @import("versions.zig").Version;
 
 
 pub const ResponseError = error {
-    Invalid,
+    OutOfMemory,
 };
 
 const Head = struct {
@@ -61,8 +61,8 @@ const ResponseBuilder = struct {
             return self;
         }
 
-        _ = self._head.headers.put(name, value) catch {
-            self.build_error = error.Invalid;
+        _ = self._head.headers.put(name, value) catch |err| {
+            self.build_error = err;
         };
         return self;
     }
@@ -115,8 +115,9 @@ pub const Response = struct {
 };
 
 const expect = std.testing.expect;
+const expectError = std.testing.expectError;
 
-test "Response - Build with default values" {
+test "Build with default values" {
     var response = try Response.builder(std.testing.allocator).body("");
     defer response.deinit();
 
@@ -126,7 +127,7 @@ test "Response - Build with default values" {
     expect(std.mem.eql(u8, response.body(), ""));
 }
 
-test "Response - Build with specific values" {
+test "Build with specific values" {
     var response = try Response.builder(std.testing.allocator)
         .version(.Http11)
         .status(.ImATeapot)
@@ -143,7 +144,7 @@ test "Response - Build with specific values" {
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
-test "Response - Build with a custom status code" {
+test "Build with a custom status code" {
     var custom_status = try StatusCode.from_u16(536);
     var response = try Response.builder(std.testing.allocator)
         .version(.Http11)
@@ -159,4 +160,14 @@ test "Response - Build with a custom status code" {
     var header = response.headers().get("GOTTA GO").?;
     expect(std.mem.eql(u8, header.key, "GOTTA GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
+}
+
+test "Fail to build when out of memory" {
+    var buffer: [100]u8 = undefined;
+    const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
+    var response = Response.builder(allocator)
+        .header("GOTTA GO", "FAST")
+        .body("ᕕ( ᐛ )ᕗ");
+
+    expectError(error.OutOfMemory, response);
 }
