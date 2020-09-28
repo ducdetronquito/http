@@ -117,6 +117,7 @@ const RequestBuilder = struct {
         if (self.build_has_failed()) {
             return self;
         }
+
         self._head.method = value;
         return self;
     }
