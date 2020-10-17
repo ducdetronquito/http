@@ -14,6 +14,31 @@ pub const Version = enum {
             .Http3 => "HTTP/3",
         };
     }
+
+    pub fn from_bytes(value: []const u8) ?Version {
+        var isInvalid = (
+            value.len < 6
+            or value.len > 8
+            or !std.mem.eql(u8, value[0..5], "HTTP/")
+        );
+        if (isInvalid) {
+            return null;
+        }
+
+        if (std.mem.eql(u8, value[5..], "0.9")) {
+            return .Http09;
+        } else if (std.mem.eql(u8, value[5..], "1.0")) {
+            return .Http10;
+        } else if (std.mem.eql(u8, value[5..], "1.1")) {
+            return .Http11;
+        } else if (std.mem.eql(u8, value[5..], "2")) {
+            return .Http2;
+        } else if (std.mem.eql(u8, value[5..], "3")) {
+            return .Http3;
+        }
+
+        return null;
+    }
 };
 
 
@@ -26,4 +51,19 @@ test "Convert to bytes" {
     expect(std.mem.eql(u8, Version.Http11.to_bytes(), "HTTP/1.1"));
     expect(std.mem.eql(u8, Version.Http2.to_bytes(), "HTTP/2"));
     expect(std.mem.eql(u8, Version.Http3.to_bytes(), "HTTP/3"));
+}
+
+test "From bytes" {
+    expect(Version.from_bytes("HTTP/0.9").? == .Http09);
+    expect(Version.from_bytes("HTTP/1.0").? == .Http10);
+    expect(Version.from_bytes("HTTP/1.1").? == .Http11);
+    expect(Version.from_bytes("HTTP/2").? == .Http2);
+    expect(Version.from_bytes("HTTP/3").? == .Http3);
+}
+
+test "From bytes - Invalid" {
+    expect(Version.from_bytes("HTTP") == null);
+    expect(Version.from_bytes("NOOB/") == null);
+    expect(Version.from_bytes("HTTP/4") == null);
+    expect(Version.from_bytes("HTTP/1.111") == null);
 }
