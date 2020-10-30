@@ -1,4 +1,4 @@
-usingnamespace @import("headers.zig");
+usingnamespace @import("headers/tests.zig");
 usingnamespace @import("methods.zig");
 usingnamespace @import("request.zig");
 usingnamespace @import("response.zig");

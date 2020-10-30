@@ -1,19 +1,21 @@
 const Allocator = std.mem.Allocator;
-const HeaderMap = @import("headers.zig").HeaderMap;
+const Headers = @import("./headers/headers.zig").Headers;
 const StatusCode = @import("status.zig").StatusCode;
 const std = @import("std");
 const Version = @import("versions.zig").Version;
 
 
-pub const ResponseError = error {
+const AllocationError = error {
     OutOfMemory,
 };
+
+pub const ResponseError = AllocationError || Headers.Error;
 
 const Head = struct {
     allocator: *Allocator,
     version: Version,
     status: StatusCode,
-    headers: HeaderMap,
+    headers: Headers,
 
     pub fn deinit(self: *Head) void {
         self.headers.deinit();
@@ -29,7 +31,7 @@ const ResponseBuilder = struct {
             .allocator = allocator,
             .version = Version.Http11,
             .status = .Ok,
-            .headers = HeaderMap.init(allocator),
+            .headers = Headers.init(allocator),
         };
         return ResponseBuilder {
             ._head = default_head,
@@ -61,7 +63,7 @@ const ResponseBuilder = struct {
             return self;
         }
 
-        _ = self._head.headers.put(name, value) catch |err| {
+        _ = self._head.headers.add(name, value) catch |err| {
             self.build_error = err;
         };
         return self;
@@ -101,7 +103,7 @@ pub const Response = struct {
         return self._body;
     }
 
-    pub inline fn headers(self: *Response) HeaderMap {
+    pub inline fn headers(self: *Response) Headers {
         return self._head.headers;
     }
 
@@ -123,7 +125,7 @@ test "Build with default values" {
 
     expect(response.version() == .Http11);
     expect(response.status() == .Ok);
-    expect(response.headers().entries.len == 0);
+    expect(response.headers().len() == 0);
     expect(std.mem.eql(u8, response.body(), ""));
 }
 
@@ -131,7 +133,7 @@ test "Build with specific values" {
     var response = try Response.builder(std.testing.allocator)
         .version(.Http11)
         .status(.ImATeapot)
-        .header("GOTTA GO", "FAST")
+        .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
     defer response.deinit();
 
@@ -139,8 +141,8 @@ test "Build with specific values" {
     expect(response.status() == .ImATeapot);
     expect(std.mem.eql(u8, response.body(), "ᕕ( ᐛ )ᕗ"));
 
-    var header = response.headers().get("GOTTA GO").?;
-    expect(std.mem.eql(u8, header.key, "GOTTA GO"));
+    var header = response.headers().get("GOTTA-GO").?;
+    expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
@@ -149,7 +151,7 @@ test "Build with a custom status code" {
     var response = try Response.builder(std.testing.allocator)
         .version(.Http11)
         .status(custom_status)
-        .header("GOTTA GO", "FAST")
+        .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
     defer response.deinit();
 
@@ -157,8 +159,8 @@ test "Build with a custom status code" {
     expect(response.status() == custom_status);
     expect(std.mem.eql(u8, response.body(), "ᕕ( ᐛ )ᕗ"));
 
-    var header = response.headers().get("GOTTA GO").?;
-    expect(std.mem.eql(u8, header.key, "GOTTA GO"));
+    var header = response.headers().get("GOTTA-GO").?;
+    expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
@@ -166,7 +168,7 @@ test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
     const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
     var response = Response.builder(allocator)
-        .header("GOTTA GO", "FAST")
+        .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
 
     expectError(error.OutOfMemory, response);

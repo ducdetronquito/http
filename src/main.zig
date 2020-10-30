@@ -1,4 +1,6 @@
-pub const HeaderMap = @import("headers.zig").HeaderMap;
+pub const HeaderName = @import("./headers/name.zig").HeaderName;
+pub const HeaderValue = @import("./headers/value.zig").HeaderValue;
+pub const Headers = @import("./headers/headers.zig").Headers;
 pub const Method = @import("methods.zig").Method;
 pub const Request = @import("request.zig").Request;
 pub const RequestBuilder = @import("request.zig").RequestBuilder;
