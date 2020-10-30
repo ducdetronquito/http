@@ -1,4 +1,6 @@
-pub const HeaderMap = @import("headers.zig").HeaderMap;
+pub const HeaderName = @import("./headers/name.zig").HeaderName;
+pub const HeaderValue = @import("./headers/value.zig").HeaderValue;
+pub const Headers = @import("./headers/headers.zig").Headers;
 pub const Method = @import("methods.zig").Method;
 pub const Request = @import("request.zig").Request;
 pub const RequestBuilder = @import("request.zig").RequestBuilder;
@@ -8,6 +10,6 @@ pub const ResponseBuilder = @import("response.zig").ResponseBuilder;
 pub const ResponseError = @import("response.zig").ResponseError;
 pub const StatusCode = @import("status.zig").StatusCode;
 pub const StatusCodeError = @import("status.zig").StatusCodeError;
-pub const Uri = @import("uri.zig").Uri;
-pub const UriError = @import("uri.zig").UriError;
+pub const Uri = @import("./uri/uri.zig").Uri;
+pub const UriError = @import("./uri/uri.zig").Error;
 pub const Version = @import("versions.zig").Version;

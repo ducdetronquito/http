@@ -39,11 +39,35 @@ defer response.deinit();
 ### Structures
 
 
-#### `HeadersMap`
-##### An HTTP header multi-map.
+#### `Headers`
+##### An HTTP header list
 
-As of yet, the headers map is a dumb StringHashMap used only to validate *http*'s API.
-At some point, we aim to provide an implementation that is RFC compliant (tracked in issue [#2](https://github.com/ducdetronquito/http/issues/2)).
+```zig
+// The default constructor
+fn init(allocator: *Allocator) Headers
+```
+
+```zig
+// Add a header name and value
+fn add(self: *Headers, name: []const u8, value: []const u8) !void
+```
+
+```zig
+// Retrieve the first matching header
+fn get(self: *Headers, name: []const u8) ?Header
+```
+
+```zig
+// Retrieve a list of matching headers
+fn list(self: *Headers, name: []const u8) ![]Header
+```
+
+```zig
+// Retrieve the number of headers
+fn len(self: *Headers) usize
+```
+
+Header issues are tracked here: [#2](https://github.com/ducdetronquito/http/issues/2)
 
 
 #### `Request`
@@ -275,6 +299,12 @@ A lot; the list is available on [MDN](https://developer.mozilla.org/fr/docs/Web/
 
 ### Errors
 
+##### `HeadersError`
+
+- OutOfMemory
+- Invalid
+
+
 ##### `RequestError`
 
 - OutOfMemory
@@ -285,6 +315,7 @@ A lot; the list is available on [MDN](https://developer.mozilla.org/fr/docs/Web/
 ##### `ResponseError`
 
 - OutOfMemory
+
 
 ## Requirements
 

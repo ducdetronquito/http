@@ -1,28 +1,28 @@
 const Allocator = std.mem.Allocator;
-const HeaderMap = @import("headers.zig").HeaderMap;
+const Headers = @import("./headers/headers.zig").Headers;
 const Method = @import("methods.zig").Method;
 const std = @import("std");
-const Uri = @import("uri.zig").Uri;
-const UriError = @import("uri.zig").UriError;
+const Uri = @import("./uri/uri.zig").Uri;
+const UriError = @import("./uri/uri.zig").Error;
 const Version = @import("versions.zig").Version;
 
 
-pub const AllocationError = error {
+const AllocationError = error {
     OutOfMemory,
 };
 
-pub const RequestBuilderError = error {
+const RequestBuilderError = error {
     UriRequired,
 };
 
-pub const RequestError = AllocationError || RequestBuilderError || UriError;
+pub const RequestError = AllocationError || RequestBuilderError || UriError || Headers.Error;
 
 const Head = struct {
     allocator: *Allocator,
     method: Method,
     uri: ?Uri,
     version: Version,
-    headers: HeaderMap,
+    headers: Headers,
 
     pub fn deinit(self: *Head) void {
         self.headers.deinit();
@@ -39,7 +39,7 @@ const RequestBuilder = struct {
             .method = Method.Get,
             .uri = null,
             .version = Version.Http11,
-            .headers = HeaderMap.init(allocator),
+            .headers = Headers.init(allocator),
         };
         return RequestBuilder {
             ._head = default_head,
@@ -107,7 +107,7 @@ const RequestBuilder = struct {
             return self;
         }
 
-        _ = self._head.headers.put(name, value) catch |err| {
+        _ = self._head.headers.add(name, value) catch |err| {
             self.build_error = err;
         };
         return self;
@@ -202,7 +202,7 @@ pub const Request = struct {
         return self._body;
     }
 
-    pub inline fn headers(self: *Request) HeaderMap {
+    pub inline fn headers(self: *Request) Headers {
         return self._head.headers;
     }
 
@@ -233,7 +233,7 @@ test "Build with default values" {
     expect(request.version() == .Http11);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
     expect(Uri.equals(request.uri(), expectedUri));
-    expect(request.headers().entries.len == 0);
+    expect(request.headers().len() == 0);
     expect(std.mem.eql(u8, request.body(), ""));
 }
 
@@ -242,7 +242,7 @@ test "Build with specific values" {
         .method(Method.Get)
         .uri("https://ziglang.org/")
         .version(.Http11)
-        .header("GOTTA GO", "FAST")
+        .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
     defer request.deinit();
 
@@ -252,8 +252,8 @@ test "Build with specific values" {
     expect(Uri.equals(request.uri(), expectedUri));
     expect(std.mem.eql(u8, request.body(), "ᕕ( ᐛ )ᕗ"));
 
-    var header = request.headers().get("GOTTA GO").?;
-    expect(std.mem.eql(u8, header.key, "GOTTA GO"));
+    var header = request.headers().get("GOTTA-GO").?;
+    expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
@@ -289,7 +289,7 @@ test "Fail to build when out of memory" {
     const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
     var request = Request.builder(allocator)
         .uri("https://ziglang.org/")
-        .header("GOTTA GO", "FAST")
+        .header("GOTTA-GO", "FAST")
         .body("");
 
     expectError(error.OutOfMemory, request);
