@@ -15,7 +15,7 @@ const std = @import("std");
 
 var request = try Request.builder(std.testing.allocator)
     .get("https://ziglang.org/")
-    .header("GOTTA GO", "FAST")
+    .header("GOTTA-GO", "FAST")
     .body("");
 defer request.deinit();
 ```
@@ -29,7 +29,7 @@ const std = @import("std");
 
 var response = try Response.builder(std.testing.allocator)
     .status(.Ok)
-    .header("GOTTA GO", "FAST")
+    .header("GOTTA-GO", "FAST")
     .body("");
 defer response.deinit();
 ```
