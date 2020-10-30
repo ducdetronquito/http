@@ -2,8 +2,8 @@ const Allocator = std.mem.Allocator;
 const HeaderMap = @import("headers.zig").HeaderMap;
 const Method = @import("methods.zig").Method;
 const std = @import("std");
-const Uri = @import("uri.zig").Uri;
-const UriError = @import("uri.zig").UriError;
+const Uri = @import("./uri/uri.zig").Uri;
+const UriError = @import("./uri/uri.zig").Error;
 const Version = @import("versions.zig").Version;
 
 
