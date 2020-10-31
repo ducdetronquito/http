@@ -15,27 +15,31 @@ const AllocationError = error { OutOfMemory };
 
 pub const Headers = struct {
     allocator: *Allocator,
-    items: ArrayList(Header),
+    _items: ArrayList(Header),
 
     pub const Error = error { Invalid } || AllocationError;
 
     pub fn init(allocator: *Allocator) Headers {
-        return Headers { .allocator = allocator, .items = ArrayList(Header).init(allocator)};
+        return Headers { .allocator = allocator, ._items = ArrayList(Header).init(allocator)};
     }
 
     pub fn deinit(self: *Headers) void {
-        self.items.deinit();
+        self._items.deinit();
     }
 
     pub fn add(self: *Headers, name: []const u8, value: []const u8) Error!void {
         var _name = try HeaderName.parse(name);
         var _value = try HeaderValue.parse(value);
 
-        try self.items.append(Header { .name = _name, .value = _value});
+        try self._items.append(Header { .name = _name, .value = _value});
     }
 
-    pub inline fn len(self: *Headers) usize {
-        return self.items.items.len;
+    pub inline fn len(self: Headers) usize {
+        return self._items.items.len;
+    }
+
+    pub inline fn items(self: Headers) []Header {
+        return self._items.items;
     }
 
     pub fn get(self: Headers, name: []const u8) ?Header {
@@ -57,7 +61,7 @@ pub const Headers = struct {
 
     inline fn get_custom_header_list(self: Headers, name: []const u8) AllocationError![]Header {
         var result = ArrayList(Header).init(self.allocator);
-        for (self.items.items) |header| {
+        for (self.items()) |header| {
             if (header.name.type == .Custom and std.mem.eql(u8, header.name.raw(), name)) {
                 try result.append(header);
             }
@@ -67,7 +71,7 @@ pub const Headers = struct {
 
     inline fn get_standard_header_list(self: Headers, name: HeaderType) AllocationError![]Header {
         var result = ArrayList(Header).init(self.allocator);
-        for (self.items.items) |header| {
+        for (self.items()) |header| {
             if (header.name.type == name) {
                 try result.append(header);
             }
@@ -76,7 +80,7 @@ pub const Headers = struct {
     }
 
     inline fn get_custom_header(self: Headers, name: []const u8) ?Header {
-        for (self.items.items) |header| {
+        for (self.items()) |header| {
             if (header.name.type == .Custom and std.mem.eql(u8, header.name.raw(), name)) {
                 return header;
             }
@@ -85,7 +89,7 @@ pub const Headers = struct {
     }
 
     inline fn get_standard_header(self: Headers, name: HeaderType) ?Header {
-        for (self.items.items) |header| {
+        for (self.items()) |header| {
             if (header.name.type == name) {
                 return header;
             }
@@ -103,8 +107,9 @@ test "Add - Standard header" {
 
     try headers.add("Content-Length", "42");
     expect(headers.len() == 1);
-    expect(headers.items.items[0].name.type == .ContentLength);
-    expect(std.mem.eql(u8, headers.items.items[0].value, "42"));
+    const header = headers.items()[0];
+    expect(header.name.type == .ContentLength);
+    expect(std.mem.eql(u8, header.value, "42"));
 }
 
 test "Add - Custom header" {
@@ -113,9 +118,10 @@ test "Add - Custom header" {
 
     try headers.add("Gotta-Go", "Fast");
     expect(headers.len() == 1);
-    expect(headers.items.items[0].name.type == .Custom);
-    expect(std.mem.eql(u8, headers.items.items[0].name.raw(), "Gotta-Go"));
-    expect(std.mem.eql(u8, headers.items.items[0].value, "Fast"));
+    const header = headers.items()[0];
+    expect(header.name.type == .Custom);
+    expect(std.mem.eql(u8, header.name.raw(), "Gotta-Go"));
+    expect(std.mem.eql(u8, header.value, "Fast"));
 }
 
 test "Add - Invalid header" {

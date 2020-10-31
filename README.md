@@ -64,7 +64,12 @@ fn list(self: *Headers, name: []const u8) ![]Header
 
 ```zig
 // Retrieve the number of headers
-fn len(self: *Headers) usize
+fn len(self: Headers) usize
+```
+
+```zig
+// Retrieve all headers
+fn items(self: Headers) []Header
 ```
 
 Header issues are tracked here: [#2](https://github.com/ducdetronquito/http/issues/2)
