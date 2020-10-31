@@ -54,12 +54,12 @@ fn append(self: *Headers, name: []const u8, value: []const u8) !void
 
 ```zig
 // Retrieve the first matching header
-fn get(self: *Headers, name: []const u8) ?Header
+fn get(self: Headers, name: []const u8) ?Header
 ```
 
 ```zig
 // Retrieve a list of matching headers
-fn list(self: *Headers, name: []const u8) ![]Header
+fn list(self: Headers, name: []const u8) ![]Header
 ```
 
 ```zig
@@ -85,7 +85,7 @@ fn builder(allocator: *Allocator) RequestBuilder
 ```
 
 ```zig
-// Release the memory allocated by the header map
+// Release the memory allocated by the headers
 fn deinit(self: *Request) void
 ```
 
@@ -95,8 +95,8 @@ fn body(self: *Request) []const u8
 ```
 
 ```zig
-// Returns the request's header map
-fn headers(self: *Request) HeaderMap
+// Returns the request's headers
+fn headers(self: *Request) Headers
 ```
 
 ```zig
@@ -123,7 +123,7 @@ default(allocator: *Allocator) RequestBuilder
 ```
 
 ```zig
-// Release the memory allocated by the header map
+// Release the memory allocated by the headers
 fn deinit(self: *RequestBuilder) void
 ```
 
@@ -209,7 +209,7 @@ fn builder(allocator: *Allocator) ResponseBuilder
 ```
 
 ```zig
-// Release the memory allocated by the header map
+// Release the memory allocated by the headers
 fn deinit(self: *Response) void
 ```
 
@@ -219,8 +219,8 @@ fn body(self: *Response) []const u8
 ```
 
 ```zig
-// Returns the response's header map
-fn headers(self: *Response) HeaderMap
+// Returns the response's headers
+fn headers(self: *Response) Headers
 ```
 
 ```zig
@@ -242,7 +242,7 @@ default(allocator: *Allocator) ResponseBuilder
 ```
 
 ```zig
-// Release the memory allocated by the header map
+// Release the memory allocated by the headers
 fn deinit(self: *ResponseBuilder) void
 ```
 
