@@ -49,7 +49,7 @@ fn init(allocator: *Allocator) Headers
 
 ```zig
 // Add a header name and value
-fn add(self: *Headers, name: []const u8, value: []const u8) !void
+fn append(self: *Headers, name: []const u8, value: []const u8) !void
 ```
 
 ```zig

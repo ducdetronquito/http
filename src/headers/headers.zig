@@ -27,7 +27,7 @@ pub const Headers = struct {
         self._items.deinit();
     }
 
-    pub fn add(self: *Headers, name: []const u8, value: []const u8) Error!void {
+    pub fn append(self: *Headers, name: []const u8, value: []const u8) Error!void {
         var _name = try HeaderName.parse(name);
         var _value = try HeaderValue.parse(value);
 
@@ -101,22 +101,24 @@ pub const Headers = struct {
 const expect = std.testing.expect;
 const expectError = std.testing.expectError;
 
-test "Add - Standard header" {
+test "Append - Standard header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.add("Content-Length", "42");
+    try headers.append("Content-Length", "42");
+
     expect(headers.len() == 1);
     const header = headers.items()[0];
     expect(header.name.type == .ContentLength);
     expect(std.mem.eql(u8, header.value, "42"));
 }
 
-test "Add - Custom header" {
+test "Append - Custom header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.add("Gotta-Go", "Fast");
+    try headers.append("Gotta-Go", "Fast");
+
     expect(headers.len() == 1);
     const header = headers.items()[0];
     expect(header.name.type == .Custom);
@@ -124,22 +126,23 @@ test "Add - Custom header" {
     expect(std.mem.eql(u8, header.value, "Fast"));
 }
 
-test "Add - Invalid header" {
+test "Append - Invalid header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    var failure = headers.add("Invalid Header", "yeah");
+    var failure = headers.append("Invalid Header", "yeah");
+
     expectError(error.Invalid, failure);
 }
 
-test "Add - Out of memory" {
+test "Append - Out of memory" {
     var buffer: [1]u8 = undefined;
     const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
 
     var headers = Headers.init(allocator);
     defer headers.deinit();
 
-    var failure = headers.add("Gotta-Go", "Fast");
+    var failure = headers.append("Gotta-Go", "Fast");
     expectError(error.OutOfMemory, failure);
 }
 
@@ -154,7 +157,7 @@ test "Get - Standard header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.add("Content-Length", "10");
+    try headers.append("Content-Length", "10");
 
     var result = headers.get("Content-Length").?;
     expect(std.mem.eql(u8, result.value, "10"));
@@ -164,7 +167,7 @@ test "Get - Custom header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.add("Gotta-Go", "Fast");
+    try headers.append("Gotta-Go", "Fast");
 
     var result = headers.get("Gotta-Go").?;
     expect(std.mem.eql(u8, result.value, "Fast"));
@@ -184,8 +187,8 @@ test "List - Standard header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.add("Content-Length", "10");
-    try headers.add("Content-Length", "20");
+    try headers.append("Content-Length", "10");
+    try headers.append("Content-Length", "20");
 
     var result = try headers.list("Content-Length");
     defer std.testing.allocator.free(result);
@@ -199,8 +202,8 @@ test "List - Custom header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.add("Gotta-Go", "Fast");
-    try headers.add("Gotta-Go", "Very Fast");
+    try headers.append("Gotta-Go", "Fast");
+    try headers.append("Gotta-Go", "Very Fast");
 
     var result = try headers.list("Gotta-Go");
     defer std.testing.allocator.free(result);

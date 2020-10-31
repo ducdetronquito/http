@@ -107,7 +107,7 @@ const RequestBuilder = struct {
             return self;
         }
 
-        _ = self._head.headers.add(name, value) catch |err| {
+        _ = self._head.headers.append(name, value) catch |err| {
             self.build_error = err;
         };
         return self;
