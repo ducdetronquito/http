@@ -25,6 +25,10 @@ pub const Method = union(MethodType) {
     Put: void,
     Trace: void,
 
+    const Error = error {
+        Invalid,
+    };
+
     pub fn to_bytes(self: Method) []const u8 {
         return switch(self) {
             .Connect => "CONNECT",
@@ -40,7 +44,16 @@ pub const Method = union(MethodType) {
         };
     }
 
-    pub fn from_bytes(value: []const u8) Method {
+    pub fn custom(value: []const u8) Error!Method {
+        for (value) |char| {
+            if (!is_token(char)) {
+                return error.Invalid;
+            }
+        }
+        return Method { .Custom = value };
+    }
+
+    pub fn from_bytes(value: []const u8) Error!Method {
         switch(value.len) {
             3 => {
                 if (std.mem.eql(u8, value, "GET")) {
@@ -49,7 +62,7 @@ pub const Method = union(MethodType) {
                     return .Put;
                 }
                 else {
-                    return Method { .Custom = value };
+                    return try Method.custom(value);
                 }
             },
             4 => {
@@ -58,7 +71,7 @@ pub const Method = union(MethodType) {
                 } else if (std.mem.eql(u8, value, "POST")) {
                     return .Post;
                 } else {
-                    return Method { .Custom = value };
+                    return try Method.custom(value);
                 }
             },
             5 => {
@@ -67,14 +80,14 @@ pub const Method = union(MethodType) {
                 } else if (std.mem.eql(u8, value, "TRACE")) {
                     return .Trace;
                 } else {
-                    return Method { .Custom = value };
+                    return try Method.custom(value);
                 }
             },
             6 => {
                 if (std.mem.eql(u8, value, "DELETE")) {
                     return .Delete;
                 } else {
-                    return Method { .Custom = value };
+                    return try Method.custom(value);
                 }
             },
             7 => {
@@ -83,17 +96,32 @@ pub const Method = union(MethodType) {
                 } else if (std.mem.eql(u8, value, "OPTIONS")) {
                     return .Options;
                 } else {
-                    return Method { .Custom = value };
+                    return try Method.custom(value);
                 }
             },
             else => {
-                return Method { .Custom = value };
+                return try Method.custom(value);
             }
         }
     }
+
+    // Determines if a character is a token character.
+    //
+    // Cf: https://tools.ietf.org/html/rfc7230#section-3.2.6
+    // > token          = 1*tchar
+    // >
+    // > tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+    // >                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+    // >                / DIGIT / ALPHA
+    // >                ; any VCHAR, except delimiters
+    inline fn is_token(char: u8) bool {
+        return char > 0x1f and char < 0x7f;
+    }
 };
 
+
 const expect = std.testing.expect;
+const expectError = std.testing.expectError;
 
 test "Convert to bytes" {
     var connect = Method { .Connect = undefined };
@@ -128,18 +156,41 @@ test "Convert to bytes" {
 }
 
 test "FromBytes - Success" {
-    expect(Method.from_bytes("CONNECT") == .Connect);
-    expect(Method.from_bytes("DELETE") == .Delete);
-    expect(Method.from_bytes("GET") == .Get);
-    expect(Method.from_bytes("HEAD") == .Head);
-    expect(Method.from_bytes("OPTIONS") == .Options);
-    expect(Method.from_bytes("PATCH") == .Patch);
-    expect(Method.from_bytes("POST") == .Post);
-    expect(Method.from_bytes("PUT") == .Put);
-    expect(Method.from_bytes("TRACE") == .Trace);
+    var method = try Method.from_bytes("CONNECT");
+    expect(method== .Connect);
 
-    switch (Method.from_bytes("LAUNCH-MISSILE")) {
+    method = try Method.from_bytes("DELETE");
+    expect(method == .Delete);
+
+    method = try Method.from_bytes("GET");
+    expect(method == .Get);
+
+    method = try Method.from_bytes("HEAD");
+    expect(method == .Head);
+
+    method = try Method.from_bytes("OPTIONS");
+    expect(method == .Options);
+
+    method = try Method.from_bytes("PATCH");
+    expect(method == .Patch);
+
+    method = try Method.from_bytes("POST");
+    expect(method == .Post);
+
+    method = try Method.from_bytes("PUT");
+    expect(method == .Put);
+
+    method = try Method.from_bytes("TRACE");
+    expect(method == .Trace);
+
+    method = try Method.from_bytes("LAUNCH-MISSILE");
+    switch (method) {
         .Custom => |name| expect(std.mem.eql(u8, name, "LAUNCH-MISSILE")),
         else => unreachable,
     }
+}
+
+test "FromBytes - Invalid character" {
+    const failure = Method.from_bytes("LAUNCH\r\nMISSILE");
+    expectError(error.Invalid, failure);
 }
