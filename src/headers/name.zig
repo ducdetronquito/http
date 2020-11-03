@@ -1,5 +1,6 @@
 pub const HeaderType = enum {
     ContentLength,
+    Host,
     Custom,
 
     inline fn lowercased_equals(lowered:[]const u8, value: []const u8) bool {
@@ -13,6 +14,13 @@ pub const HeaderType = enum {
 
     pub fn from_bytes(value: []const u8) HeaderType {
         return switch(value.len) {
+            4 => {
+                if (lowercased_equals("host", value)) {
+                    return .Host;
+                } else {
+                    return .Custom;
+                }
+            },
             14 => {
                 if (lowercased_equals("content-length", value)) {
                     return .ContentLength;
@@ -30,6 +38,7 @@ pub const HeaderType = enum {
     pub fn to_bytes(self: HeaderType, value: []const u8) []const u8 {
         return switch(self) {
             .ContentLength => "content-length",
+            .Host => "host",
             else => value,
         };
     }
@@ -129,11 +138,14 @@ test "Parse - Invalid character returns an error" {
 }
 
 test "TypeOf - Standard header name" {
-    var _type = HeaderName.type_of("CoNTeNt-LeNgTh");
-    expect(_type == HeaderType.ContentLength);
+    expect(HeaderName.type_of("Content-Length") == .ContentLength);
+    expect(HeaderName.type_of("Host") == .Host);
+}
+
+test "TypeOf - Standard headers matching is case insensitive" {
+    expect(HeaderName.type_of("CoNTeNt-LeNgTh") == .ContentLength);
 }
 
 test "TypeOf - Custom header" {
-    var _type = HeaderName.type_of("Gotta-Go-Fast");
-    expect(_type == HeaderType.Custom);
+    expect(HeaderName.type_of("Gotta-Go-Fast") == .Custom);
 }
