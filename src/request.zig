@@ -18,7 +18,7 @@ const RequestBuilderError = error {
 pub const RequestError = AllocationError || RequestBuilderError || UriError || Headers.Error;
 
 
-const RequestBuilder = struct {
+pub const RequestBuilder = struct {
     build_error: ?RequestError,
     _method: Method,
     _uri: ?Uri,

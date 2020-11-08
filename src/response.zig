@@ -12,7 +12,7 @@ const AllocationError = error {
 pub const ResponseError = AllocationError || Headers.Error;
 
 
-const ResponseBuilder = struct {
+pub const ResponseBuilder = struct {
     build_error: ?ResponseError,
     _version: Version,
     _status: StatusCode,
