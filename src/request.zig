@@ -17,38 +17,22 @@ const RequestBuilderError = error {
 
 pub const RequestError = AllocationError || RequestBuilderError || UriError || Headers.Error;
 
-const Head = struct {
-    allocator: *Allocator,
-    method: Method,
-    uri: ?Uri,
-    version: Version,
-    headers: Headers,
-
-    pub fn deinit(self: *Head) void {
-        self.headers.deinit();
-    }
-};
 
 const RequestBuilder = struct {
-    _head: Head,
     build_error: ?RequestError,
+    _method: Method,
+    _uri: ?Uri,
+    _version: Version,
+    headers: Headers,
 
     pub fn default(allocator: *Allocator) RequestBuilder {
-        var default_head = Head {
-            .allocator = allocator,
-            .method = Method.Get,
-            .uri = null,
-            .version = Version.Http11,
+        return RequestBuilder {
+            .build_error = null,
+            ._method = Method.Get,
+            ._uri = null,
+            ._version = Version.Http11,
             .headers = Headers.init(allocator),
         };
-        return RequestBuilder {
-            ._head = default_head,
-            .build_error = null,
-        };
-    }
-
-    pub fn deinit(self: *RequestBuilder) void {
-        self._head.deinit();
     }
 
     inline fn build_has_failed(self: *RequestBuilder) bool {
@@ -57,16 +41,20 @@ const RequestBuilder = struct {
 
     pub fn body(self: *RequestBuilder, value: []const u8) RequestError!Request {
         if (self.build_has_failed()) {
+            self.headers.deinit();
             return self.build_error.?;
         }
 
-        if (self._head.uri == null) {
+        if (self._uri == null) {
             return error.UriRequired;
         }
 
         return Request {
-            ._head = self._head,
-            ._body = value
+            .method = self._method,
+            .uri = self._uri.?,
+            .version = self._version,
+            .headers = self.headers,
+            .body = value
         };
     }
 
@@ -107,7 +95,7 @@ const RequestBuilder = struct {
             return self;
         }
 
-        _ = self._head.headers.append(name, value) catch |err| {
+        _ = self.headers.append(name, value) catch |err| {
             self.build_error = err;
         };
         return self;
@@ -118,7 +106,7 @@ const RequestBuilder = struct {
             return self;
         }
 
-        self._head.method = value;
+        self._method = value;
         return self;
     }
 
@@ -168,7 +156,7 @@ const RequestBuilder = struct {
         }
 
         if (Uri.parse(value, false)) |_uri| {
-            self._head.uri = _uri;
+            self._uri = _uri;
         } else |err| {
             self.build_error = err;
         }
@@ -180,42 +168,25 @@ const RequestBuilder = struct {
         if (self.build_has_failed()) {
             return self;
         }
-        self._head.version = value;
+        self._version = value;
         return self;
     }
 };
 
 
 pub const Request = struct {
-    _head: Head,
-    _body: []const u8,
+    method: Method,
+    uri: Uri,
+    version: Version,
+    headers: Headers,
+    body: []const u8,
 
     pub fn builder(allocator: *Allocator) RequestBuilder {
         return RequestBuilder.default(allocator);
     }
 
     pub fn deinit(self: *Request) void {
-        self._head.deinit();
-    }
-
-    pub inline fn body(self: *Request) []const u8 {
-        return self._body;
-    }
-
-    pub inline fn headers(self: *Request) Headers {
-        return self._head.headers;
-    }
-
-    pub inline fn method(self: *Request) Method {
-        return self._head.method;
-    }
-
-    pub inline fn uri(self: *Request) Uri {
-        return self._head.uri orelse unreachable;
-    }
-
-    pub inline fn version(self: *Request) Version {
-        return self._head.version;
+        self.headers.deinit();
     }
 };
 
@@ -229,12 +200,12 @@ test "Build with default values" {
         .body("");
     defer request.deinit();
 
-    expect(request.method() == Method.Get);
-    expect(request.version() == .Http11);
+    expect(request.method == Method.Get);
+    expect(request.version == .Http11);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
-    expect(request.headers().len() == 0);
-    expect(std.mem.eql(u8, request.body(), ""));
+    expect(Uri.equals(request.uri, expectedUri));
+    expect(request.headers.len() == 0);
+    expect(std.mem.eql(u8, request.body, ""));
 }
 
 test "Build with specific values" {
@@ -246,13 +217,13 @@ test "Build with specific values" {
         .body("ᕕ( ᐛ )ᕗ");
     defer request.deinit();
 
-    expect(request.method() == Method.Get);
-    expect(request.version() == .Http11);
+    expect(request.method == Method.Get);
+    expect(request.version == .Http11);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
-    expect(std.mem.eql(u8, request.body(), "ᕕ( ᐛ )ᕗ"));
+    expect(Uri.equals(request.uri, expectedUri));
+    expect(std.mem.eql(u8, request.body, "ᕕ( ᐛ )ᕗ"));
 
-    var header = request.headers().get("GOTTA-GO").?;
+    var header = request.headers.get("GOTTA-GO").?;
     expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
@@ -264,7 +235,7 @@ test "Build with a custom method" {
         .body("");
     defer request.deinit();
 
-    switch(request.method()) {
+    switch(request.method) {
         .Custom => |value| {
             expect(std.mem.eql(u8, value, "LAUNCH-MISSILE"));
         },
@@ -273,105 +244,115 @@ test "Build with a custom method" {
 }
 
 test "Fail to build when the URI is missing" {
-    var request = Request.builder(std.testing.allocator).body("");
-    expectError(error.UriRequired, request);
+    const failure = Request.builder(std.testing.allocator).body("");
+    expectError(error.UriRequired, failure);
 }
 
 test "Fail to build when the URI is invalid" {
-    var request = Request.builder(std.testing.allocator)
+    const failure = Request.builder(std.testing.allocator)
         .uri("")
         .body("");
-    expectError(error.EmptyUri, request);
+    expectError(error.EmptyUri, failure);
 }
 
 test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
     const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
-    var request = Request.builder(allocator)
+    const failure = Request.builder(allocator)
         .uri("https://ziglang.org/")
         .header("GOTTA-GO", "FAST")
         .body("");
 
-    expectError(error.OutOfMemory, request);
+    expectError(error.OutOfMemory, failure);
+}
+
+test "Free headers memory on error" {
+    const failure = Request.builder(std.testing.allocator)
+        .get("https://ziglang.org/")
+        .header("GOTTA-GO", "FAST")
+        .header("INVALID HEADER", "")
+        .body("");
+
+    expectError(error.Invalid, failure);
 }
 
 test "Build a CONNECT request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).connect("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Connect);
+    expect(request.method == .Connect);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build a DELETE request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).delete("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Delete);
+    expect(request.method == .Delete);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build a GET request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).get("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Get);
+    expect(request.method == .Get);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build an HEAD request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).head("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Head);
+    expect(request.method == .Head);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build an OPTIONS request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).options("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Options);
+    expect(request.method == .Options);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build an PATCH request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).patch("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Patch);
+    expect(request.method == .Patch);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build a POST request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).post("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Post);
+    expect(request.method == .Post);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build a PUT request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).put("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Put);
+    expect(request.method == .Put);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
 
 test "Build a TRACE request with the shortcut method" {
     var request = try Request.builder(std.testing.allocator).trace("https://ziglang.org/").body("");
     defer request.deinit();
 
-    expect(request.method() == .Trace);
+    expect(request.method == .Trace);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
-    expect(Uri.equals(request.uri(), expectedUri));
+    expect(Uri.equals(request.uri, expectedUri));
 }
