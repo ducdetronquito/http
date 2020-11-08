@@ -138,10 +138,7 @@ test "Build with a custom status code" {
 }
 
 test "Free headers memory on error" {
-    var custom_status = try StatusCode.from_u16(536);
     const failure = Response.builder(std.testing.allocator)
-        .version(.Http11)
-        .status(custom_status)
         .header("GOTTA-GO", "FAST")
         .header("INVALID HEADER", "")
         .body("");
