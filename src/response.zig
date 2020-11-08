@@ -11,36 +11,26 @@ const AllocationError = error {
 
 pub const ResponseError = AllocationError || Headers.Error;
 
-const Head = struct {
-    allocator: *Allocator,
-    version: Version,
-    status: StatusCode,
-    headers: Headers,
-
-    pub fn deinit(self: *Head) void {
-        self.headers.deinit();
-    }
-};
 
 const ResponseBuilder = struct {
-    _head: Head,
+    allocator: *Allocator,
     build_error: ?ResponseError,
+    _version: Version,
+    _status: StatusCode,
+    headers: Headers,
 
     pub fn default(allocator: *Allocator) ResponseBuilder {
-        var default_head = Head {
-            .allocator = allocator,
-            .version = Version.Http11,
-            .status = .Ok,
-            .headers = Headers.init(allocator),
-        };
         return ResponseBuilder {
-            ._head = default_head,
+            .allocator = allocator,
             .build_error = null,
+            ._version = Version.Http11,
+            ._status = .Ok,
+            .headers = Headers.init(allocator),
         };
     }
 
     pub fn deinit(self: *ResponseBuilder) void {
-        self._head.deinit();
+        self.headers.deinit();
     }
 
     inline fn build_has_failed(self: *ResponseBuilder) bool {
@@ -53,8 +43,10 @@ const ResponseBuilder = struct {
         }
 
         return Response {
-            ._head = self._head,
-            ._body = value
+            .version = self._version,
+            .status = self._status,
+            .headers = self.headers,
+            .body = value
         };
     }
 
@@ -63,7 +55,7 @@ const ResponseBuilder = struct {
             return self;
         }
 
-        _ = self._head.headers.append(name, value) catch |err| {
+        _ = self.headers.append(name, value) catch |err| {
             self.build_error = err;
         };
         return self;
@@ -73,7 +65,7 @@ const ResponseBuilder = struct {
         if (self.build_has_failed()) {
             return self;
         }
-        self._head.status = value;
+        self._status = value;
         return self;
     }
 
@@ -81,38 +73,24 @@ const ResponseBuilder = struct {
         if (self.build_has_failed()) {
             return self;
         }
-        self._head.version = value;
+        self._version = value;
         return self;
     }
 };
 
 
 pub const Response = struct {
-    _head: Head,
-    _body: []const u8,
+    status: StatusCode,
+    version: Version,
+    headers: Headers,
+    body: []const u8,
 
     pub fn builder(allocator: *Allocator) ResponseBuilder {
         return ResponseBuilder.default(allocator);
     }
 
     pub fn deinit(self: *Response) void {
-        self._head.deinit();
-    }
-
-    pub inline fn body(self: *Response) []const u8 {
-        return self._body;
-    }
-
-    pub inline fn headers(self: *Response) Headers {
-        return self._head.headers;
-    }
-
-    pub inline fn status(self: *Response) StatusCode {
-        return self._head.status;
-    }
-
-    pub inline fn version(self: *Response) Version {
-        return self._head.version;
+        self.headers.deinit();
     }
 };
 
@@ -123,10 +101,10 @@ test "Build with default values" {
     var response = try Response.builder(std.testing.allocator).body("");
     defer response.deinit();
 
-    expect(response.version() == .Http11);
-    expect(response.status() == .Ok);
-    expect(response.headers().len() == 0);
-    expect(std.mem.eql(u8, response.body(), ""));
+    expect(response.version == .Http11);
+    expect(response.status == .Ok);
+    expect(response.headers.len() == 0);
+    expect(std.mem.eql(u8, response.body, ""));
 }
 
 test "Build with specific values" {
@@ -137,11 +115,11 @@ test "Build with specific values" {
         .body("ᕕ( ᐛ )ᕗ");
     defer response.deinit();
 
-    expect(response.version() == .Http11);
-    expect(response.status() == .ImATeapot);
-    expect(std.mem.eql(u8, response.body(), "ᕕ( ᐛ )ᕗ"));
+    expect(response.version == .Http11);
+    expect(response.status == .ImATeapot);
+    expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
 
-    var header = response.headers().get("GOTTA-GO").?;
+    var header = response.headers.get("GOTTA-GO").?;
     expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
@@ -155,11 +133,11 @@ test "Build with a custom status code" {
         .body("ᕕ( ᐛ )ᕗ");
     defer response.deinit();
 
-    expect(response.version() == .Http11);
-    expect(response.status() == custom_status);
-    expect(std.mem.eql(u8, response.body(), "ᕕ( ᐛ )ᕗ"));
+    expect(response.version == .Http11);
+    expect(response.status == custom_status);
+    expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
 
-    var header = response.headers().get("GOTTA-GO").?;
+    var header = response.headers.get("GOTTA-GO").?;
     expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
     expect(std.mem.eql(u8, header.value, "FAST"));
 }

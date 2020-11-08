@@ -202,35 +202,18 @@ fn version(self: *RequestBuilder, value: Version) *RequestBuilder
 #### `Response`
 ##### An HTTP response object produced by the response builder.
 
+```zig
+const Response = struct {
+    status: StatusCode,
+    version: Version,
+    headers: Headers,
+    body: []const u8,
+};
+```
 
 ```zig
 // The default constructor to start building a response
 fn builder(allocator: *Allocator) ResponseBuilder
-```
-
-```zig
-// Release the memory allocated by the headers
-fn deinit(self: *Response) void
-```
-
-```zig
-// Returns the response's payload
-fn body(self: *Response) []const u8
-```
-
-```zig
-// Returns the response's headers
-fn headers(self: *Response) Headers
-```
-
-```zig
-// Returns the response's status code
-fn status(self: *Response) StatusCode
-```
-
-```zig
-// Returns the response's protocol version
-fn version(self: *Response) Version
 ```
 
 #### `ResponseBuilder`
