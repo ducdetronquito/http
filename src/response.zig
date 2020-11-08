@@ -13,7 +13,6 @@ pub const ResponseError = AllocationError || Headers.Error;
 
 
 const ResponseBuilder = struct {
-    allocator: *Allocator,
     build_error: ?ResponseError,
     _version: Version,
     _status: StatusCode,
@@ -21,16 +20,11 @@ const ResponseBuilder = struct {
 
     pub fn default(allocator: *Allocator) ResponseBuilder {
         return ResponseBuilder {
-            .allocator = allocator,
             .build_error = null,
             ._version = Version.Http11,
             ._status = .Ok,
             .headers = Headers.init(allocator),
         };
-    }
-
-    pub fn deinit(self: *ResponseBuilder) void {
-        self.headers.deinit();
     }
 
     inline fn build_has_failed(self: *ResponseBuilder) bool {
@@ -39,6 +33,7 @@ const ResponseBuilder = struct {
 
     pub fn body(self: *ResponseBuilder, value: []const u8) ResponseError!Response {
         if (self.build_has_failed()) {
+            self.headers.deinit();
             return self.build_error.?;
         }
 
@@ -142,12 +137,24 @@ test "Build with a custom status code" {
     expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
+test "Free headers memory on error" {
+    var custom_status = try StatusCode.from_u16(536);
+    const failure = Response.builder(std.testing.allocator)
+        .version(.Http11)
+        .status(custom_status)
+        .header("GOTTA-GO", "FAST")
+        .header("INVALID HEADER", "")
+        .body("");
+
+    expectError(error.Invalid, failure);
+}
+
 test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
     const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
-    var response = Response.builder(allocator)
+    const failure = Response.builder(allocator)
         .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
 
-    expectError(error.OutOfMemory, response);
+    expectError(error.OutOfMemory, failure);
 }

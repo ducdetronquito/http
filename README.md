@@ -225,11 +225,6 @@ default(allocator: *Allocator) ResponseBuilder
 ```
 
 ```zig
-// Release the memory allocated by the headers
-fn deinit(self: *ResponseBuilder) void
-```
-
-```zig
 // Set the response's payload.
 // This function returns the final response objet or a potential error
 // collected during the build steps
