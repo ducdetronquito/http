@@ -78,6 +78,15 @@ Header issues are tracked here: [#2](https://github.com/ducdetronquito/http/issu
 #### `Request`
 ##### An HTTP request object produced by the request builder.
 
+```zig
+const Request = struct {
+    method: Method,
+    uri: Uri,
+    version: Version,
+    headers: Headers,
+    body: []const u8,
+};
+```
 
 ```zig
 // The default constructor to start building a request
@@ -89,42 +98,12 @@ fn builder(allocator: *Allocator) RequestBuilder
 fn deinit(self: *Request) void
 ```
 
-```zig
-// Returns the request's payload
-fn body(self: *Request) []const u8
-```
-
-```zig
-// Returns the request's headers
-fn headers(self: *Request) Headers
-```
-
-```zig
-// Returns the request's method
-fn method(self: *Request) Method
-```
-
-```zig
-// Returns the request's URI
-fn uri(self: *Request) Uri
-```
-
-```zig
-// Returns the request's protocol version
-fn version(self: *Request) Version
-```
-
 #### `RequestBuilder`
 ##### The request builder.
 
 ```zig
 // The default constructor
 default(allocator: *Allocator) RequestBuilder
-```
-
-```zig
-// Release the memory allocated by the headers
-fn deinit(self: *RequestBuilder) void
 ```
 
 ```zig
