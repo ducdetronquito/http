@@ -273,7 +273,7 @@ test "Free headers memory on error" {
         .header("INVALID HEADER", "")
         .body("");
 
-    expectError(error.Invalid, failure);
+    expectError(error.InvalidHeaderName, failure);
 }
 
 test "Build a CONNECT request with the shortcut method" {
