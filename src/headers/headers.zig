@@ -17,7 +17,7 @@ pub const Headers = struct {
     allocator: *Allocator,
     _items: ArrayList(Header),
 
-    pub const Error = error { Invalid } || AllocationError;
+    pub const Error = error { InvalidHeaderName, InvalidHeaderValue } || AllocationError;
 
     pub fn init(allocator: *Allocator) Headers {
         return Headers { .allocator = allocator, ._items = ArrayList(Header).init(allocator)};
@@ -28,8 +28,8 @@ pub const Headers = struct {
     }
 
     pub fn append(self: *Headers, name: []const u8, value: []const u8) Error!void {
-        var _name = try HeaderName.parse(name);
-        var _value = try HeaderValue.parse(value);
+        var _name = HeaderName.parse(name) catch return error.InvalidHeaderName;
+        var _value = HeaderValue.parse(value) catch return error.InvalidHeaderValue;
 
         try self._items.append(Header { .name = _name, .value = _value});
     }
@@ -126,13 +126,22 @@ test "Append - Custom header" {
     expect(std.mem.eql(u8, header.value, "Fast"));
 }
 
-test "Append - Invalid header" {
+test "Append - Invalid header name" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
     var failure = headers.append("Invalid Header", "yeah");
 
-    expectError(error.Invalid, failure);
+    expectError(error.InvalidHeaderName, failure);
+}
+
+test "Append - Invalid header value" {
+    var headers = Headers.init(std.testing.allocator);
+    defer headers.deinit();
+
+    var failure = headers.append("name", "I\nvalid");
+
+    expectError(error.InvalidHeaderValue, failure);
 }
 
 test "Append - Out of memory" {

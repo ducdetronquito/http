@@ -143,7 +143,7 @@ test "Free headers memory on error" {
         .header("INVALID HEADER", "")
         .body("");
 
-    expectError(error.Invalid, failure);
+    expectError(error.InvalidHeaderName, failure);
 }
 
 test "Fail to build when out of memory" {
