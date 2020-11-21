@@ -2,7 +2,7 @@
 
 HTTP core types for Zig inspired by Rust [http](https://github.com/hyperium/http).
 
-[![Build Status](https://api.travis-ci.org/ducdetronquito/http.svg?branch=master)](https://travis-ci.org/ducdetronquito/http) [![License](https://img.shields.io/badge/license-public%20domain-ff69b4.svg)](https://github.com/ducdetronquito/http#license) [![Requirements](https://img.shields.io/badge/zig-0.7.0-orange)](https://ziglang.org/)
+[![Build Status](https://api.travis-ci.org/ducdetronquito/http.svg?branch=master)](https://travis-ci.org/ducdetronquito/http) [![License](https://img.shields.io/badge/License-BSD%200--Clause-ff69b4.svg)](https://github.com/ducdetronquito/http#license) [![Requirements](https://img.shields.io/badge/zig-0.7.0-orange)](https://ziglang.org/)
 
 
 ## Usage
@@ -286,5 +286,6 @@ To work with *http* you will need the latest stable version of Zig, which is cur
 
 ## License
 
-*http* is released into the Public Domain. 🎉🍻
+*http* is released under the [BSD Zero clause license](https://choosealicense.com/licenses/0bsd/). 🎉🍻
+
 The URI parser is a fork of Vexu's [zuri](https://github.com/Vexu/zuri) under the MIT License.
