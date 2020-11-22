@@ -1,15 +1,10 @@
-const std = @import("std");
 const Allocator = @import("std").mem.Allocator;
 const ArrayList = @import("std").ArrayList;
+const Header = @import("header.zig").Header;
 const HeaderName = @import("name.zig").HeaderName;
 const HeaderType = @import("name.zig").HeaderType;
 const HeaderValue = @import("value.zig").HeaderValue;
-
-
-pub const Header = struct {
-    name: HeaderName,
-    value: []const u8,
-};
+const std = @import("std");
 
 const AllocationError = error { OutOfMemory };
 

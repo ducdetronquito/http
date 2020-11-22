@@ -1,7 +1,7 @@
 pub const HeaderName = @import("./headers/name.zig").HeaderName;
 pub const HeaderType = @import("./headers/name.zig").HeaderType;
 pub const HeaderValue = @import("./headers/value.zig").HeaderValue;
-pub const Header = @import("./headers/headers.zig").Header;
+pub const Header = @import("./headers/header.zig").Header;
 pub const Headers = @import("./headers/headers.zig").Headers;
 pub const Method = @import("methods.zig").Method;
 pub const Request = @import("request.zig").Request;
