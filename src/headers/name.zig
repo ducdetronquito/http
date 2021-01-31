@@ -62,6 +62,10 @@ pub const HeaderName = struct {
     };
 
     pub fn parse(name: []const u8) Error!HeaderName {
+        if (name.len == 0) {
+            return error.Invalid;
+        }
+
         for(name) |char| {
             if (HEADER_NAME_MAP[char] == 0) {
                 return error.Invalid;
@@ -142,6 +146,12 @@ test "Parse - Custom header names have no lower-cased representation" {
 
 test "Parse - Invalid character returns an error" {
     const fail = HeaderName.parse("Cont(ent-Length");
+
+    expectError(error.Invalid, fail);
+}
+
+test "Parse - Empty name is invalid" {
+    const fail = HeaderName.parse("");
 
     expectError(error.Invalid, fail);
 }
