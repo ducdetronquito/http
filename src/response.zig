@@ -27,7 +27,7 @@ pub const ResponseBuilder = struct {
         };
     }
 
-    inline fn build_has_failed(self: *ResponseBuilder) bool {
+    fn build_has_failed(self: *ResponseBuilder) callconv(.Inline) bool {
         return self.build_error != null;
     }
 

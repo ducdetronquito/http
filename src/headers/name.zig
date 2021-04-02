@@ -79,7 +79,7 @@ pub const HeaderType = enum {
     XFrameOptions,
     XXssProtection,
 
-    inline fn lowercased_equals(lowered:[]const u8, value: []const u8) bool {
+    fn lowercased_equals(lowered:[]const u8, value: []const u8) callconv(.Inline) bool {
         if (lowered.len != value.len) {
             return false;
         }
@@ -538,15 +538,15 @@ pub const HeaderName = struct {
         return HeaderName { .type = HeaderType.from_bytes(name), .value = name };
     }
 
-    pub inline fn raw(self: HeaderName) []const u8 {
+    pub fn raw(self: HeaderName) callconv(.Inline) []const u8 {
         return self.value;
     }
 
-    pub inline fn as_http1(self: HeaderName) []const u8 {
+    pub fn as_http1(self: HeaderName) callconv(.Inline) []const u8 {
         return self.type.as_http1(self.value);
     }
 
-    pub inline fn as_http2(self: HeaderName) []const u8 {
+    pub fn as_http2(self: HeaderName) callconv(.Inline) []const u8 {
         return self.type.as_http2(self.value);
     }
 

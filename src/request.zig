@@ -35,7 +35,7 @@ pub const RequestBuilder = struct {
         };
     }
 
-    inline fn build_has_failed(self: *RequestBuilder) bool {
+    fn build_has_failed(self: *RequestBuilder) callconv(.Inline) bool {
         return self.build_error != null;
     }
 

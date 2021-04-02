@@ -114,7 +114,7 @@ pub const Method = union(MethodType) {
     // >                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
     // >                / DIGIT / ALPHA
     // >                ; any VCHAR, except delimiters
-    inline fn is_token(char: u8) bool {
+    fn is_token(char: u8) callconv(.Inline) bool {
         return char > 0x1f and char < 0x7f;
     }
 };

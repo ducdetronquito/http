@@ -29,11 +29,11 @@ pub const Headers = struct {
         try self._items.append(Header { .name = _name, .value = _value});
     }
 
-    pub inline fn len(self: Headers) usize {
+    pub fn len(self: Headers) callconv(.Inline) usize {
         return self._items.items.len;
     }
 
-    pub inline fn items(self: Headers) []Header {
+    pub fn items(self: Headers) callconv(.Inline) []Header {
         return self._items.items;
     }
 
@@ -54,7 +54,7 @@ pub const Headers = struct {
         };
     }
 
-    inline fn get_custom_header_list(self: Headers, name: []const u8) AllocationError![]Header {
+    fn get_custom_header_list(self: Headers, name: []const u8) callconv(.Inline) AllocationError![]Header {
         var result = ArrayList(Header).init(self.allocator);
         for (self.items()) |header| {
             if (header.name.type == .Custom and std.mem.eql(u8, header.name.raw(), name)) {
@@ -64,7 +64,7 @@ pub const Headers = struct {
         return result.toOwnedSlice();
     }
 
-    inline fn get_standard_header_list(self: Headers, name: HeaderType) AllocationError![]Header {
+    fn get_standard_header_list(self: Headers, name: HeaderType) callconv(.Inline) AllocationError![]Header {
         var result = ArrayList(Header).init(self.allocator);
         for (self.items()) |header| {
             if (header.name.type == name) {
@@ -74,7 +74,7 @@ pub const Headers = struct {
         return result.toOwnedSlice();
     }
 
-    inline fn get_custom_header(self: Headers, name: []const u8) ?Header {
+    fn get_custom_header(self: Headers, name: []const u8) callconv(.Inline) ?Header {
         for (self.items()) |header| {
             if (header.name.type == .Custom and std.mem.eql(u8, header.name.raw(), name)) {
                 return header;
@@ -83,7 +83,7 @@ pub const Headers = struct {
         return null;
     }
 
-    inline fn get_standard_header(self: Headers, name: HeaderType) ?Header {
+    fn get_standard_header(self: Headers, name: HeaderType) callconv(.Inline) ?Header {
         for (self.items()) |header| {
             if (header.name.type == name) {
                 return header;
