@@ -46,24 +46,24 @@ const expect = std.testing.expect;
 const std = @import("std");
 
 test "Convert to bytes" {
-    expect(std.mem.eql(u8, Version.Http09.to_bytes(), "HTTP/0.9"));
-    expect(std.mem.eql(u8, Version.Http10.to_bytes(), "HTTP/1.0"));
-    expect(std.mem.eql(u8, Version.Http11.to_bytes(), "HTTP/1.1"));
-    expect(std.mem.eql(u8, Version.Http2.to_bytes(), "HTTP/2"));
-    expect(std.mem.eql(u8, Version.Http3.to_bytes(), "HTTP/3"));
+    try expect(std.mem.eql(u8, Version.Http09.to_bytes(), "HTTP/0.9"));
+    try expect(std.mem.eql(u8, Version.Http10.to_bytes(), "HTTP/1.0"));
+    try expect(std.mem.eql(u8, Version.Http11.to_bytes(), "HTTP/1.1"));
+    try expect(std.mem.eql(u8, Version.Http2.to_bytes(), "HTTP/2"));
+    try expect(std.mem.eql(u8, Version.Http3.to_bytes(), "HTTP/3"));
 }
 
 test "From bytes" {
-    expect(Version.from_bytes("HTTP/0.9").? == .Http09);
-    expect(Version.from_bytes("HTTP/1.0").? == .Http10);
-    expect(Version.from_bytes("HTTP/1.1").? == .Http11);
-    expect(Version.from_bytes("HTTP/2").? == .Http2);
-    expect(Version.from_bytes("HTTP/3").? == .Http3);
+    try expect(Version.from_bytes("HTTP/0.9").? == .Http09);
+    try expect(Version.from_bytes("HTTP/1.0").? == .Http10);
+    try expect(Version.from_bytes("HTTP/1.1").? == .Http11);
+    try expect(Version.from_bytes("HTTP/2").? == .Http2);
+    try expect(Version.from_bytes("HTTP/3").? == .Http3);
 }
 
 test "From bytes - Invalid" {
-    expect(Version.from_bytes("HTTP") == null);
-    expect(Version.from_bytes("NOOB/") == null);
-    expect(Version.from_bytes("HTTP/4") == null);
-    expect(Version.from_bytes("HTTP/1.111") == null);
+    try expect(Version.from_bytes("HTTP") == null);
+    try expect(Version.from_bytes("NOOB/") == null);
+    try expect(Version.from_bytes("HTTP/4") == null);
+    try expect(Version.from_bytes("HTTP/1.111") == null);
 }

@@ -592,69 +592,69 @@ const expectError = std.testing.expectError;
 
 test "Parse - Standard header names have a lower-cased representation" {
     var name = try HeaderName.parse("Content-Length");
-    expect(std.mem.eql(u8, name.raw(), "Content-Length"));
-    expect(name.type == .ContentLength);
+    try expect(std.mem.eql(u8, name.raw(), "Content-Length"));
+    try expect(name.type == .ContentLength);
 }
 
 test "Parse - Standard header names tagging is case insensitive" {
     var name = try HeaderName.parse("CoNtEnT-LeNgTh");
-    expect(std.mem.eql(u8, name.raw(), "CoNtEnT-LeNgTh"));
-    expect(name.type == .ContentLength);
+    try expect(std.mem.eql(u8, name.raw(), "CoNtEnT-LeNgTh"));
+    try expect(name.type == .ContentLength);
 }
 
 test "Parse - Custom header names have no lower-cased representation" {
     var name = try HeaderName.parse("Gotta-Go-Fast");
-    expect(std.mem.eql(u8, name.raw(), "Gotta-Go-Fast"));
-    expect(name.type == .Custom);
+    try expect(std.mem.eql(u8, name.raw(), "Gotta-Go-Fast"));
+    try expect(name.type == .Custom);
 }
 
 test "Parse - Invalid character returns an error" {
     const fail = HeaderName.parse("Cont(ent-Length");
 
-    expectError(error.Invalid, fail);
+    try expectError(error.Invalid, fail);
 }
 
 test "Parse - Empty name is invalid" {
     const fail = HeaderName.parse("");
 
-    expectError(error.Invalid, fail);
+    try expectError(error.Invalid, fail);
 }
 
 test "TypeOf - Standard header name" {
-    expect(HeaderName.type_of("Content-Length") == .ContentLength);
-    expect(HeaderName.type_of("Host") == .Host);
+    try expect(HeaderName.type_of("Content-Length") == .ContentLength);
+    try expect(HeaderName.type_of("Host") == .Host);
 }
 
 test "TypeOf - Standard headers matching is case insensitive" {
-    expect(HeaderName.type_of("CoNTeNt-LeNgTh") == .ContentLength);
+    try expect(HeaderName.type_of("CoNTeNt-LeNgTh") == .ContentLength);
 }
 
 test "TypeOf - Custom header" {
-    expect(HeaderName.type_of("Gotta-Go-Fast") == .Custom);
+    try expect(HeaderName.type_of("Gotta-Go-Fast") == .Custom);
 }
 
 test "AsHttp1 - Standard headers are titled" {
     var name = try HeaderName.parse("Content-Length");
 
-    expect(std.mem.eql(u8, name.as_http1(), "Content-Length"));
+    try expect(std.mem.eql(u8, name.as_http1(), "Content-Length"));
 }
 
 test "AsHttp1 - Custom headers keeps their case" {
     var name = try HeaderName.parse("Gotta-Go-Fast");
 
-    expect(std.mem.eql(u8, name.as_http1(), "Gotta-Go-Fast"));
+    try expect(std.mem.eql(u8, name.as_http1(), "Gotta-Go-Fast"));
 }
 
 test "AsHttp2 - Standard headers are lowercased" {
     var name = try HeaderName.parse("Content-Length");
 
-    expect(std.mem.eql(u8, name.as_http2(), "content-length"));
+    try expect(std.mem.eql(u8, name.as_http2(), "content-length"));
 }
 
 test "AsHttp2 - Custom headers keeps their case" {
     var name = try HeaderName.parse("Gotta-Go-Fast");
 
-    expect(std.mem.eql(u8, name.as_http2(), "Gotta-Go-Fast"));
+    try expect(std.mem.eql(u8, name.as_http2(), "Gotta-Go-Fast"));
 }
 
 test "Parse" {
@@ -746,8 +746,8 @@ test "Parse" {
 
     for (cases) |case| {
         var name = try HeaderName.parse(case.value);
-        expect(name.type == case.type);
-        expect(std.mem.eql(u8, name.as_http1(), case.http1));
-        expect(std.mem.eql(u8, name.as_http2(), case.http2));
+        try expect(name.type == case.type);
+        try expect(std.mem.eql(u8, name.as_http1(), case.http1));
+        try expect(std.mem.eql(u8, name.as_http2(), case.http2));
     }
 }

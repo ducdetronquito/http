@@ -96,10 +96,10 @@ test "Build with default values" {
     var response = try Response.builder(std.testing.allocator).body("");
     defer response.deinit();
 
-    expect(response.version == .Http11);
-    expect(response.status == .Ok);
-    expect(response.headers.len() == 0);
-    expect(std.mem.eql(u8, response.body, ""));
+    try expect(response.version == .Http11);
+    try expect(response.status == .Ok);
+    try expect(response.headers.len() == 0);
+    try expect(std.mem.eql(u8, response.body, ""));
 }
 
 test "Build with specific values" {
@@ -110,13 +110,13 @@ test "Build with specific values" {
         .body("ᕕ( ᐛ )ᕗ");
     defer response.deinit();
 
-    expect(response.version == .Http11);
-    expect(response.status == .ImATeapot);
-    expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
+    try expect(response.version == .Http11);
+    try expect(response.status == .ImATeapot);
+    try expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
 
     var header = response.headers.get("GOTTA-GO").?;
-    expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
-    expect(std.mem.eql(u8, header.value, "FAST"));
+    try expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
+    try expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
 test "Build with a custom status code" {
@@ -128,13 +128,13 @@ test "Build with a custom status code" {
         .body("ᕕ( ᐛ )ᕗ");
     defer response.deinit();
 
-    expect(response.version == .Http11);
-    expect(response.status == custom_status);
-    expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
+    try expect(response.version == .Http11);
+    try expect(response.status == custom_status);
+    try expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
 
     var header = response.headers.get("GOTTA-GO").?;
-    expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
-    expect(std.mem.eql(u8, header.value, "FAST"));
+    try expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
+    try expect(std.mem.eql(u8, header.value, "FAST"));
 }
 
 test "Free headers memory on error" {
@@ -143,7 +143,7 @@ test "Free headers memory on error" {
         .header("INVALID HEADER", "")
         .body("");
 
-    expectError(error.InvalidHeaderName, failure);
+    try expectError(error.InvalidHeaderName, failure);
 }
 
 test "Fail to build when out of memory" {
@@ -153,5 +153,5 @@ test "Fail to build when out of memory" {
         .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
 
-    expectError(error.OutOfMemory, failure);
+    try expectError(error.OutOfMemory, failure);
 }

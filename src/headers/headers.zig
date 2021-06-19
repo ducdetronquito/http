@@ -102,10 +102,10 @@ test "Append - Standard header" {
 
     try headers.append("Content-Length", "42");
 
-    expect(headers.len() == 1);
+    try expect(headers.len() == 1);
     const header = headers.items()[0];
-    expect(header.name.type == .ContentLength);
-    expect(std.mem.eql(u8, header.value, "42"));
+    try expect(header.name.type == .ContentLength);
+    try expect(std.mem.eql(u8, header.value, "42"));
 }
 
 test "Append - Custom header" {
@@ -114,11 +114,11 @@ test "Append - Custom header" {
 
     try headers.append("Gotta-Go", "Fast");
 
-    expect(headers.len() == 1);
+    try expect(headers.len() == 1);
     const header = headers.items()[0];
-    expect(header.name.type == .Custom);
-    expect(std.mem.eql(u8, header.name.raw(), "Gotta-Go"));
-    expect(std.mem.eql(u8, header.value, "Fast"));
+    try expect(header.name.type == .Custom);
+    try expect(std.mem.eql(u8, header.name.raw(), "Gotta-Go"));
+    try expect(std.mem.eql(u8, header.value, "Fast"));
 }
 
 test "Append - Invalid header name" {
@@ -127,7 +127,7 @@ test "Append - Invalid header name" {
 
     var failure = headers.append("Invalid Header", "yeah");
 
-    expectError(error.InvalidHeaderName, failure);
+    try expectError(error.InvalidHeaderName, failure);
 }
 
 test "Append - Invalid header value" {
@@ -136,7 +136,7 @@ test "Append - Invalid header value" {
 
     var failure = headers.append("name", "I\nvalid");
 
-    expectError(error.InvalidHeaderValue, failure);
+    try expectError(error.InvalidHeaderValue, failure);
 }
 
 test "Append - Out of memory" {
@@ -147,14 +147,14 @@ test "Append - Out of memory" {
     defer headers.deinit();
 
     var failure = headers.append("Gotta-Go", "Fast");
-    expectError(error.OutOfMemory, failure);
+    try expectError(error.OutOfMemory, failure);
 }
 
 test "Get - Missing header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    expect(headers.get("Content-Length") == null);
+    try expect(headers.get("Content-Length") == null);
 }
 
 test "Get - Standard header" {
@@ -164,7 +164,7 @@ test "Get - Standard header" {
     try headers.append("Content-Length", "10");
 
     var result = headers.get("Content-Length").?;
-    expect(std.mem.eql(u8, result.value, "10"));
+    try expect(std.mem.eql(u8, result.value, "10"));
 }
 
 test "Get - Custom header" {
@@ -174,7 +174,7 @@ test "Get - Custom header" {
     try headers.append("Gotta-Go", "Fast");
 
     var result = headers.get("Gotta-Go").?;
-    expect(std.mem.eql(u8, result.value, "Fast"));
+    try expect(std.mem.eql(u8, result.value, "Fast"));
 }
 
 
@@ -184,7 +184,7 @@ test "List - Missing header" {
 
     var result = try headers.list("Content-Length");
     defer std.testing.allocator.free(result);
-    expect(result.len == 0);
+    try expect(result.len == 0);
 }
 
 test "List - Standard header" {
@@ -197,9 +197,9 @@ test "List - Standard header" {
     var result = try headers.list("Content-Length");
     defer std.testing.allocator.free(result);
 
-    expect(result.len == 2);
-    expect(std.mem.eql(u8, result[0].value, "10"));
-    expect(std.mem.eql(u8, result[1].value, "20"));
+    try expect(result.len == 2);
+    try expect(std.mem.eql(u8, result[0].value, "10"));
+    try expect(std.mem.eql(u8, result[1].value, "20"));
 }
 
 test "List - Custom header" {
@@ -212,7 +212,7 @@ test "List - Custom header" {
     var result = try headers.list("Gotta-Go");
     defer std.testing.allocator.free(result);
 
-    expect(result.len == 2);
-    expect(std.mem.eql(u8, result[0].value, "Fast"));
-    expect(std.mem.eql(u8, result[1].value, "Very Fast"));
+    try expect(result.len == 2);
+    try expect(std.mem.eql(u8, result[0].value, "Fast"));
+    try expect(std.mem.eql(u8, result[1].value, "Very Fast"));
 }

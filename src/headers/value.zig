@@ -56,17 +56,17 @@ const expectError = std.testing.expectError;
 test "Parse - Success" {
     var value = try HeaderValue.parse("A tasty cookie");
 
-    expect(std.mem.eql(u8, value, "A tasty cookie"));
+    try expect(std.mem.eql(u8, value, "A tasty cookie"));
 }
 
 test "Parse - Invalid character returns an error" {
     const fail = HeaderValue.parse("A invalid\rcookie");
 
-    expectError(error.Invalid, fail);
+    try expectError(error.Invalid, fail);
 }
 
 test "Parse - Empty value is invalid" {
     const fail = HeaderValue.parse("");
 
-    expectError(error.Invalid, fail);
+    try expectError(error.Invalid, fail);
 }

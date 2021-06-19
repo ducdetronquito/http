@@ -50,11 +50,11 @@ test "AsSlice" {
         .{"Content-Length", "9000"},
         .{"Gotta-Go", "Fast!"},
     });
-    expect(result.len == 2);
-    expect(result[0].name.type == .ContentLength);
-    expect(std.mem.eql(u8, result[0].name.raw(), "Content-Length"));
-    expect(std.mem.eql(u8, result[0].value, "9000"));
-    expect(result[1].name.type == .Custom);
-    expect(std.mem.eql(u8, result[1].name.raw(), "Gotta-Go"));
-    expect(std.mem.eql(u8, result[1].value, "Fast!"));
+    try expect(result.len == 2);
+    try expect(result[0].name.type == .ContentLength);
+    try expect(std.mem.eql(u8, result[0].name.raw(), "Content-Length"));
+    try expect(std.mem.eql(u8, result[0].value, "9000"));
+    try expect(result[1].name.type == .Custom);
+    try expect(std.mem.eql(u8, result[1].name.raw(), "Gotta-Go"));
+    try expect(std.mem.eql(u8, result[1].value, "Fast!"));
 }
