@@ -192,6 +192,7 @@ pub const Request = struct {
 
 
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Build with default values" {
@@ -205,7 +206,7 @@ test "Build with default values" {
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
     try expect(Uri.equals(request.uri, expectedUri));
     try expect(request.headers.len() == 0);
-    try expect(std.mem.eql(u8, request.body, ""));
+    try expectEqualStrings(request.body, "");
 }
 
 test "Build with specific values" {
@@ -221,11 +222,11 @@ test "Build with specific values" {
     try expect(request.version == .Http11);
     const expectedUri = try Uri.parse("https://ziglang.org/", false);
     try expect(Uri.equals(request.uri, expectedUri));
-    try expect(std.mem.eql(u8, request.body, "ᕕ( ᐛ )ᕗ"));
+    try expectEqualStrings(request.body, "ᕕ( ᐛ )ᕗ");
 
     var header = request.headers.get("GOTTA-GO").?;
-    try expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
-    try expect(std.mem.eql(u8, header.value, "FAST"));
+    try expectEqualStrings(header.name.raw(), "GOTTA-GO");
+    try expectEqualStrings(header.value, "FAST");
 }
 
 test "Build with a custom method" {
@@ -235,12 +236,7 @@ test "Build with a custom method" {
         .body("");
     defer request.deinit();
 
-    switch(request.method) {
-        .Custom => |value| {
-            try expect(std.mem.eql(u8, value, "LAUNCH-MISSILE"));
-        },
-        else => unreachable,
-    }
+    try expectEqualStrings(request.method.Custom, "LAUNCH-MISSILE");
 }
 
 test "Fail to build when the URI is missing" {

@@ -94,6 +94,7 @@ pub const Headers = struct {
 };
 
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Append - Standard header" {
@@ -105,7 +106,7 @@ test "Append - Standard header" {
     try expect(headers.len() == 1);
     const header = headers.items()[0];
     try expect(header.name.type == .ContentLength);
-    try expect(std.mem.eql(u8, header.value, "42"));
+    try expectEqualStrings(header.value, "42");
 }
 
 test "Append - Custom header" {
@@ -117,8 +118,8 @@ test "Append - Custom header" {
     try expect(headers.len() == 1);
     const header = headers.items()[0];
     try expect(header.name.type == .Custom);
-    try expect(std.mem.eql(u8, header.name.raw(), "Gotta-Go"));
-    try expect(std.mem.eql(u8, header.value, "Fast"));
+    try expectEqualStrings(header.name.raw(), "Gotta-Go");
+    try expectEqualStrings(header.value, "Fast");
 }
 
 test "Append - Invalid header name" {
@@ -164,7 +165,7 @@ test "Get - Standard header" {
     try headers.append("Content-Length", "10");
 
     var result = headers.get("Content-Length").?;
-    try expect(std.mem.eql(u8, result.value, "10"));
+    try expectEqualStrings(result.value, "10");
 }
 
 test "Get - Custom header" {
@@ -174,7 +175,7 @@ test "Get - Custom header" {
     try headers.append("Gotta-Go", "Fast");
 
     var result = headers.get("Gotta-Go").?;
-    try expect(std.mem.eql(u8, result.value, "Fast"));
+    try expectEqualStrings(result.value, "Fast");
 }
 
 
@@ -198,8 +199,8 @@ test "List - Standard header" {
     defer std.testing.allocator.free(result);
 
     try expect(result.len == 2);
-    try expect(std.mem.eql(u8, result[0].value, "10"));
-    try expect(std.mem.eql(u8, result[1].value, "20"));
+    try expectEqualStrings(result[0].value, "10");
+    try expectEqualStrings(result[1].value, "20");
 }
 
 test "List - Custom header" {
@@ -213,6 +214,6 @@ test "List - Custom header" {
     defer std.testing.allocator.free(result);
 
     try expect(result.len == 2);
-    try expect(std.mem.eql(u8, result[0].value, "Fast"));
-    try expect(std.mem.eql(u8, result[1].value, "Very Fast"));
+    try expectEqualStrings(result[0].value, "Fast");
+    try expectEqualStrings(result[1].value, "Very Fast");
 }

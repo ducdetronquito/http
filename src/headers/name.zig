@@ -588,23 +588,24 @@ const HEADER_NAME_MAP = [_]u8 {
 
 const std = @import("std");
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Parse - Standard header names have a lower-cased representation" {
     var name = try HeaderName.parse("Content-Length");
-    try expect(std.mem.eql(u8, name.raw(), "Content-Length"));
+    try expectEqualStrings(name.raw(), "Content-Length");
     try expect(name.type == .ContentLength);
 }
 
 test "Parse - Standard header names tagging is case insensitive" {
     var name = try HeaderName.parse("CoNtEnT-LeNgTh");
-    try expect(std.mem.eql(u8, name.raw(), "CoNtEnT-LeNgTh"));
+    try expectEqualStrings(name.raw(), "CoNtEnT-LeNgTh");
     try expect(name.type == .ContentLength);
 }
 
 test "Parse - Custom header names have no lower-cased representation" {
     var name = try HeaderName.parse("Gotta-Go-Fast");
-    try expect(std.mem.eql(u8, name.raw(), "Gotta-Go-Fast"));
+    try expectEqualStrings(name.raw(), "Gotta-Go-Fast");
     try expect(name.type == .Custom);
 }
 
@@ -636,25 +637,25 @@ test "TypeOf - Custom header" {
 test "AsHttp1 - Standard headers are titled" {
     var name = try HeaderName.parse("Content-Length");
 
-    try expect(std.mem.eql(u8, name.as_http1(), "Content-Length"));
+    try expectEqualStrings(name.as_http1(), "Content-Length");
 }
 
 test "AsHttp1 - Custom headers keeps their case" {
     var name = try HeaderName.parse("Gotta-Go-Fast");
 
-    try expect(std.mem.eql(u8, name.as_http1(), "Gotta-Go-Fast"));
+    try expectEqualStrings(name.as_http1(), "Gotta-Go-Fast");
 }
 
 test "AsHttp2 - Standard headers are lowercased" {
     var name = try HeaderName.parse("Content-Length");
 
-    try expect(std.mem.eql(u8, name.as_http2(), "content-length"));
+    try expectEqualStrings(name.as_http2(), "content-length");
 }
 
 test "AsHttp2 - Custom headers keeps their case" {
     var name = try HeaderName.parse("Gotta-Go-Fast");
 
-    try expect(std.mem.eql(u8, name.as_http2(), "Gotta-Go-Fast"));
+    try expectEqualStrings(name.as_http2(), "Gotta-Go-Fast");
 }
 
 test "Parse" {
@@ -747,7 +748,7 @@ test "Parse" {
     for (cases) |case| {
         var name = try HeaderName.parse(case.value);
         try expect(name.type == case.type);
-        try expect(std.mem.eql(u8, name.as_http1(), case.http1));
-        try expect(std.mem.eql(u8, name.as_http2(), case.http2));
+        try expectEqualStrings(name.as_http1(), case.http1);
+        try expectEqualStrings(name.as_http2(), case.http2);
     }
 }

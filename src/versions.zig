@@ -41,16 +41,16 @@ pub const Version = enum {
     }
 };
 
-
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const std = @import("std");
 
 test "Convert to bytes" {
-    try expect(std.mem.eql(u8, Version.Http09.to_bytes(), "HTTP/0.9"));
-    try expect(std.mem.eql(u8, Version.Http10.to_bytes(), "HTTP/1.0"));
-    try expect(std.mem.eql(u8, Version.Http11.to_bytes(), "HTTP/1.1"));
-    try expect(std.mem.eql(u8, Version.Http2.to_bytes(), "HTTP/2"));
-    try expect(std.mem.eql(u8, Version.Http3.to_bytes(), "HTTP/3"));
+    try expectEqualStrings(Version.Http09.to_bytes(), "HTTP/0.9");
+    try expectEqualStrings(Version.Http10.to_bytes(), "HTTP/1.0");
+    try expectEqualStrings(Version.Http11.to_bytes(), "HTTP/1.1");
+    try expectEqualStrings(Version.Http2.to_bytes(), "HTTP/2");
+    try expectEqualStrings(Version.Http3.to_bytes(), "HTTP/3");
 }
 
 test "From bytes" {

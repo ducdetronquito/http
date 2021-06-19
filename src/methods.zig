@@ -119,45 +119,45 @@ pub const Method = union(MethodType) {
     }
 };
 
-
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Convert to bytes" {
     var connect = Method { .Connect = undefined };
-    try expect(std.mem.eql(u8, connect.to_bytes(), "CONNECT"));
+    try expectEqualStrings(connect.to_bytes(), "CONNECT");
 
     var lauch_missile = Method { .Custom = "LAUNCH-MISSILE" };
-    try expect(std.mem.eql(u8, lauch_missile.to_bytes(), "LAUNCH-MISSILE"));
+    try expectEqualStrings(lauch_missile.to_bytes(), "LAUNCH-MISSILE");
 
     var delete = Method { .Delete = undefined };
-    try expect(std.mem.eql(u8, delete.to_bytes(), "DELETE"));
+    try expectEqualStrings(delete.to_bytes(), "DELETE");
 
     var get = Method { .Get = undefined };
-    try expect(std.mem.eql(u8, get.to_bytes(), "GET"));
+    try expectEqualStrings(get.to_bytes(), "GET");
 
     var head = Method { .Head = undefined };
-    try expect(std.mem.eql(u8, head.to_bytes(), "HEAD"));
+    try expectEqualStrings(head.to_bytes(), "HEAD");
 
     var options = Method { .Options = undefined };
-    try expect(std.mem.eql(u8, options.to_bytes(), "OPTIONS"));
+    try expectEqualStrings(options.to_bytes(), "OPTIONS");
 
     var patch = Method { .Patch = undefined };
-    try expect(std.mem.eql(u8, patch.to_bytes(), "PATCH"));
+    try expectEqualStrings(patch.to_bytes(), "PATCH");
 
     var post = Method { .Post = undefined };
-    try expect(std.mem.eql(u8, post.to_bytes(), "POST"));
+    try expectEqualStrings(post.to_bytes(), "POST");
 
     var put = Method { .Put = undefined };
-    try expect(std.mem.eql(u8, put.to_bytes(), "PUT"));
+    try expectEqualStrings(put.to_bytes(), "PUT");
 
     var trace = Method { .Trace = undefined };
-    try expect(std.mem.eql(u8, trace.to_bytes(), "TRACE"));
+    try expectEqualStrings(trace.to_bytes(), "TRACE");
 }
 
 test "FromBytes - Success" {
     var method = try Method.from_bytes("CONNECT");
-    try expect(method== .Connect);
+    try expect(method == .Connect);
 
     method = try Method.from_bytes("DELETE");
     try expect(method == .Delete);
@@ -184,10 +184,7 @@ test "FromBytes - Success" {
     try expect(method == .Trace);
 
     method = try Method.from_bytes("LAUNCH-MISSILE");
-    switch (method) {
-        .Custom => |name| try expect(std.mem.eql(u8, name, "LAUNCH-MISSILE")),
-        else => unreachable,
-    }
+    try expectEqualStrings(method.Custom, "LAUNCH-MISSILE");
 }
 
 test "FromBytes - Invalid character" {

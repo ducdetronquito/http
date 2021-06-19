@@ -90,6 +90,7 @@ pub const Response = struct {
 };
 
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Build with default values" {
@@ -99,7 +100,7 @@ test "Build with default values" {
     try expect(response.version == .Http11);
     try expect(response.status == .Ok);
     try expect(response.headers.len() == 0);
-    try expect(std.mem.eql(u8, response.body, ""));
+    try expectEqualStrings(response.body, "");
 }
 
 test "Build with specific values" {
@@ -112,11 +113,11 @@ test "Build with specific values" {
 
     try expect(response.version == .Http11);
     try expect(response.status == .ImATeapot);
-    try expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
+    try expectEqualStrings(response.body, "ᕕ( ᐛ )ᕗ");
 
     var header = response.headers.get("GOTTA-GO").?;
-    try expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
-    try expect(std.mem.eql(u8, header.value, "FAST"));
+    try expectEqualStrings(header.name.raw(), "GOTTA-GO");
+    try expectEqualStrings(header.value, "FAST");
 }
 
 test "Build with a custom status code" {
@@ -130,11 +131,11 @@ test "Build with a custom status code" {
 
     try expect(response.version == .Http11);
     try expect(response.status == custom_status);
-    try expect(std.mem.eql(u8, response.body, "ᕕ( ᐛ )ᕗ"));
+    try expectEqualStrings(response.body, "ᕕ( ᐛ )ᕗ");
 
     var header = response.headers.get("GOTTA-GO").?;
-    try expect(std.mem.eql(u8, header.name.raw(), "GOTTA-GO"));
-    try expect(std.mem.eql(u8, header.value, "FAST"));
+    try expectEqualStrings(header.name.raw(), "GOTTA-GO");
+    try expectEqualStrings(header.value, "FAST");
 }
 
 test "Free headers memory on error" {

@@ -50,13 +50,13 @@ const HEADER_VALUE_MAP = [_]bool {
 
 
 const std = @import("std");
-const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Parse - Success" {
     var value = try HeaderValue.parse("A tasty cookie");
 
-    try expect(std.mem.eql(u8, value, "A tasty cookie"));
+    try expectEqualStrings(value, "A tasty cookie");
 }
 
 test "Parse - Invalid character returns an error" {

@@ -44,6 +44,7 @@ pub const Header = struct {
 
 const std = @import("std");
 const expect = std.testing.expect;
+const expectEqualStrings = std.testing.expectEqualStrings;
 
 test "AsSlice" {
     var result = Header.as_slice(.{
@@ -52,9 +53,9 @@ test "AsSlice" {
     });
     try expect(result.len == 2);
     try expect(result[0].name.type == .ContentLength);
-    try expect(std.mem.eql(u8, result[0].name.raw(), "Content-Length"));
-    try expect(std.mem.eql(u8, result[0].value, "9000"));
+    try expectEqualStrings(result[0].name.raw(), "Content-Length");
+    try expectEqualStrings(result[0].value, "9000");
     try expect(result[1].name.type == .Custom);
-    try expect(std.mem.eql(u8, result[1].name.raw(), "Gotta-Go"));
-    try expect(std.mem.eql(u8, result[1].value, "Fast!"));
+    try expectEqualStrings(result[1].name.raw(), "Gotta-Go");
+    try expectEqualStrings(result[1].value, "Fast!");
 }
