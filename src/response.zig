@@ -4,13 +4,11 @@ const StatusCode = @import("status.zig").StatusCode;
 const std = @import("std");
 const Version = @import("versions.zig").Version;
 
-
-const AllocationError = error {
+const AllocationError = error{
     OutOfMemory,
 };
 
 pub const ResponseError = AllocationError || Headers.Error;
-
 
 pub const ResponseBuilder = struct {
     build_error: ?ResponseError,
@@ -19,7 +17,7 @@ pub const ResponseBuilder = struct {
     headers: Headers,
 
     pub fn default(allocator: *Allocator) ResponseBuilder {
-        return ResponseBuilder {
+        return ResponseBuilder{
             .build_error = null,
             ._version = Version.Http11,
             ._status = .Ok,
@@ -27,7 +25,7 @@ pub const ResponseBuilder = struct {
         };
     }
 
-    fn build_has_failed(self: *ResponseBuilder) callconv(.Inline) bool {
+    inline fn build_has_failed(self: *ResponseBuilder) bool {
         return self.build_error != null;
     }
 
@@ -37,12 +35,7 @@ pub const ResponseBuilder = struct {
             return self.build_error.?;
         }
 
-        return Response {
-            .version = self._version,
-            .status = self._status,
-            .headers = self.headers,
-            .body = value
-        };
+        return Response{ .version = self._version, .status = self._status, .headers = self.headers, .body = value };
     }
 
     pub fn header(self: *ResponseBuilder, name: []const u8, value: []const u8) *ResponseBuilder {
@@ -72,7 +65,6 @@ pub const ResponseBuilder = struct {
         return self;
     }
 };
-
 
 pub const Response = struct {
     status: StatusCode,

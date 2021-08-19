@@ -6,7 +6,7 @@ pub const Version = enum {
     Http3,
 
     pub fn to_bytes(self: Version) []const u8 {
-        return switch(self) {
+        return switch (self) {
             .Http09 => "HTTP/0.9",
             .Http10 => "HTTP/1.0",
             .Http11 => "HTTP/1.1",
@@ -16,11 +16,7 @@ pub const Version = enum {
     }
 
     pub fn from_bytes(value: []const u8) ?Version {
-        var isInvalid = (
-            value.len < 6
-            or value.len > 8
-            or !std.mem.eql(u8, value[0..5], "HTTP/")
-        );
+        var isInvalid = (value.len < 6 or value.len > 8 or !std.mem.eql(u8, value[0..5], "HTTP/"));
         if (isInvalid) {
             return null;
         }

@@ -5,7 +5,6 @@ const net = std.net;
 const parseUnsigned = std.fmt.parseUnsigned;
 const std = @import("std");
 
-
 const ValueMap = std.StringHashMap([]const u8);
 
 pub const Host = union(enum) {
@@ -31,19 +30,19 @@ pub const Host = union(enum) {
 };
 
 /// possible errors for mapQuery
-pub const MapError = error {
+pub const MapError = error{
     NoQuery,
     OutOfMemory,
 };
 
 /// possible errors for decode and encode
-pub const EncodeError = error {
+pub const EncodeError = error{
     InvalidCharacter,
     OutOfMemory,
 };
 
 /// possible errors for parse
-pub const Error = error {
+pub const Error = error{
     /// input is not a valid uri due to a invalid character
     /// mostly a result of invalid ipv6
     InvalidCharacter,
@@ -439,23 +438,12 @@ pub const Uri = struct {
             if (second.port) |secondPort| {
                 hasSamePort = firstPort == secondPort;
             }
-        }
-        else {
+        } else {
             if (second.port == null) {
                 hasSamePort = true;
             }
         }
-        return (
-            first.len == second.len
-            and std.mem.eql(u8, first.scheme, second.scheme)
-            and Host.equals(first.host, second.host)
-            and hasSamePort
-            and std.mem.eql(u8, first.path, second.path)
-            and std.mem.eql(u8, first.query, second.query)
-            and std.mem.eql(u8, first.fragment, second.fragment)
-            and std.mem.eql(u8, first.username, second.username)
-            and std.mem.eql(u8, first.password, second.password)
-        );
+        return (first.len == second.len and std.mem.eql(u8, first.scheme, second.scheme) and Host.equals(first.host, second.host) and hasSamePort and std.mem.eql(u8, first.path, second.path) and std.mem.eql(u8, first.query, second.query) and std.mem.eql(u8, first.fragment, second.fragment) and std.mem.eql(u8, first.username, second.username) and std.mem.eql(u8, first.password, second.password));
     }
 };
 

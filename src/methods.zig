@@ -25,12 +25,12 @@ pub const Method = union(MethodType) {
     Put: void,
     Trace: void,
 
-    const Error = error {
+    const Error = error{
         Invalid,
     };
 
     pub fn to_bytes(self: Method) []const u8 {
-        return switch(self) {
+        return switch (self) {
             .Connect => "CONNECT",
             .Custom => |name| name,
             .Delete => "DELETE",
@@ -50,18 +50,17 @@ pub const Method = union(MethodType) {
                 return error.Invalid;
             }
         }
-        return Method { .Custom = value };
+        return Method{ .Custom = value };
     }
 
     pub fn from_bytes(value: []const u8) Error!Method {
-        switch(value.len) {
+        switch (value.len) {
             3 => {
                 if (std.mem.eql(u8, value, "GET")) {
                     return .Get;
                 } else if (std.mem.eql(u8, value, "PUT")) {
                     return .Put;
-                }
-                else {
+                } else {
                     return try Method.custom(value);
                 }
             },
@@ -101,7 +100,7 @@ pub const Method = union(MethodType) {
             },
             else => {
                 return try Method.custom(value);
-            }
+            },
         }
     }
 
@@ -114,7 +113,7 @@ pub const Method = union(MethodType) {
     // >                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
     // >                / DIGIT / ALPHA
     // >                ; any VCHAR, except delimiters
-    fn is_token(char: u8) callconv(.Inline) bool {
+    inline fn is_token(char: u8) bool {
         return char > 0x1f and char < 0x7f;
     }
 };
@@ -124,34 +123,34 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Convert to bytes" {
-    var connect = Method { .Connect = undefined };
+    var connect = Method{ .Connect = undefined };
     try expectEqualStrings(connect.to_bytes(), "CONNECT");
 
-    var lauch_missile = Method { .Custom = "LAUNCH-MISSILE" };
+    var lauch_missile = Method{ .Custom = "LAUNCH-MISSILE" };
     try expectEqualStrings(lauch_missile.to_bytes(), "LAUNCH-MISSILE");
 
-    var delete = Method { .Delete = undefined };
+    var delete = Method{ .Delete = undefined };
     try expectEqualStrings(delete.to_bytes(), "DELETE");
 
-    var get = Method { .Get = undefined };
+    var get = Method{ .Get = undefined };
     try expectEqualStrings(get.to_bytes(), "GET");
 
-    var head = Method { .Head = undefined };
+    var head = Method{ .Head = undefined };
     try expectEqualStrings(head.to_bytes(), "HEAD");
 
-    var options = Method { .Options = undefined };
+    var options = Method{ .Options = undefined };
     try expectEqualStrings(options.to_bytes(), "OPTIONS");
 
-    var patch = Method { .Patch = undefined };
+    var patch = Method{ .Patch = undefined };
     try expectEqualStrings(patch.to_bytes(), "PATCH");
 
-    var post = Method { .Post = undefined };
+    var post = Method{ .Post = undefined };
     try expectEqualStrings(post.to_bytes(), "POST");
 
-    var put = Method { .Put = undefined };
+    var put = Method{ .Put = undefined };
     try expectEqualStrings(put.to_bytes(), "PUT");
 
-    var trace = Method { .Trace = undefined };
+    var trace = Method{ .Trace = undefined };
     try expectEqualStrings(trace.to_bytes(), "TRACE");
 }
 

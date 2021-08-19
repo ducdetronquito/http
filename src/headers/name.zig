@@ -79,7 +79,7 @@ pub const HeaderType = enum {
     XFrameOptions,
     XXssProtection,
 
-    fn lowercased_equals(lowered:[]const u8, value: []const u8) callconv(.Inline) bool {
+    inline fn lowercased_equals(lowered: []const u8, value: []const u8) bool {
         if (lowered.len != value.len) {
             return false;
         }
@@ -93,7 +93,7 @@ pub const HeaderType = enum {
     }
 
     pub fn from_bytes(value: []const u8) HeaderType {
-        switch(value.len) {
+        switch (value.len) {
             2 => {
                 if (lowercased_equals("te", value)) {
                     return .Te;
@@ -342,13 +342,13 @@ pub const HeaderType = enum {
             },
             else => {
                 return .Custom;
-            }
+            },
         }
         return .Custom;
     }
 
     pub fn as_http1(self: HeaderType, value: []const u8) []const u8 {
-        return switch(self) {
+        return switch (self) {
             .Accept => "Accept",
             .AcceptCharset => "Accept-Charset",
             .AcceptEncoding => "Accept-Encoding",
@@ -432,7 +432,7 @@ pub const HeaderType = enum {
     }
 
     pub fn as_http2(self: HeaderType, value: []const u8) []const u8 {
-        return switch(self) {
+        return switch (self) {
             .Accept => "accept",
             .AcceptCharset => "accept-charset",
             .AcceptEncoding => "accept-encoding",
@@ -516,12 +516,11 @@ pub const HeaderType = enum {
     }
 };
 
-
 pub const HeaderName = struct {
     type: HeaderType,
     value: []const u8,
 
-    const Error = error {
+    const Error = error{
         Invalid,
     };
 
@@ -530,60 +529,60 @@ pub const HeaderName = struct {
             return error.Invalid;
         }
 
-        for(name) |char| {
+        for (name) |char| {
             if (HEADER_NAME_MAP[char] == 0) {
                 return error.Invalid;
             }
         }
-        return HeaderName { .type = HeaderType.from_bytes(name), .value = name };
+        return HeaderName{ .type = HeaderType.from_bytes(name), .value = name };
     }
 
-    pub fn raw(self: HeaderName) callconv(.Inline) []const u8 {
+    pub inline fn raw(self: HeaderName) []const u8 {
         return self.value;
     }
 
-    pub fn as_http1(self: HeaderName) callconv(.Inline) []const u8 {
+    pub inline fn as_http1(self: HeaderName) []const u8 {
         return self.type.as_http1(self.value);
     }
 
-    pub fn as_http2(self: HeaderName) callconv(.Inline) []const u8 {
+    pub inline fn as_http2(self: HeaderName) []const u8 {
         return self.type.as_http2(self.value);
     }
 
     pub fn type_of(name: []const u8) HeaderType {
         return HeaderType.from_bytes(name);
     }
- };
+};
 
 // ASCII codes accepted for an header's name
 // Cf: Borrowed from Seamonstar's httparse library
 // https://github.com/seanmonstar/httparse/blob/01e68542605d8a24a707536561c27a336d4090dc/src/lib.rs#L96
-const HEADER_NAME_MAP = [_]u8 {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//  \0                         \t \n       \r
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//   commands
-    0, '!', 0, '#', '$', '%', '&', '\'', 0, 0, '*', '+', 0, '-', '.', 0,
-//  \s      "                            (  )            ,            /
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0, 0, 0, 0, 0,
-//                                                    :  ;  <  =  >  ?
-    0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-//  @   A    B    C    D    E    F    G    H    I    J    K    L    M    N    O
-    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 0, 0, 0, '^', '_',
-//   P    Q    R    S    T    U    V    W    X    Y    Z   [  \  ]
-    '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-//
-    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 0, '|', 0, '~', 0,
-//                                                         {       }      del
-//   ====== Extended ASCII (aka. obs-text) ======
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+const HEADER_NAME_MAP = [_]u8{
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    //  \0                         \t \n       \r
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    //   commands
+    0,   '!', 0,   '#', '$', '%', '&', '\'', 0,   0,   '*', '+', 0,   '-', '.', 0,
+    //  \s      "                            (  )            ,            /
+    '0', '1', '2', '3', '4', '5', '6', '7',  '8', '9', 0,   0,   0,   0,   0,   0,
+    //                                                    :  ;  <  =  >  ?
+    0,   'a', 'b', 'c', 'd', 'e', 'f', 'g',  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+    //  @   A    B    C    D    E    F    G    H    I    J    K    L    M    N    O
+    'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z', 0,   0,   0,   '^', '_',
+    //   P    Q    R    S    T    U    V    W    X    Y    Z   [  \  ]
+    '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g',  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+    //
+    'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z', 0,   '|', 0,   '~', 0,
+    //                                                         {       }      del
+    //   ====== Extended ASCII (aka. obs-text) ======
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
 };
 
 const std = @import("std");
@@ -666,83 +665,83 @@ test "Parse" {
         http2: []const u8,
     };
 
-    var cases = [_]Case {
-        .{.value = "Accept", .type = .Accept, .http1 = "Accept", .http2 = "accept" },
-        .{.value = "Accept-Charset", .type = .AcceptCharset, .http1 = "Accept-Charset", .http2 = "accept-charset" },
-        .{.value = "Accept-Encoding", .type = .AcceptEncoding, .http1 = "Accept-Encoding", .http2 = "accept-encoding" },
-        .{.value = "Accept-Language", .type = .AcceptLanguage, .http1 = "Accept-Language", .http2 = "accept-language" },
-        .{.value = "Accept-Ranges", .type = .AcceptRanges, .http1 = "Accept-Ranges", .http2 = "accept-ranges" },
-        .{.value = "Access-Control-Allow-Credentials", .type = .AccessControlAllowCredentials, .http1 = "Access-Control-Allow-Credentials", .http2 = "access-control-allow-credentials" },
-        .{.value = "Access-Control-Allow-Headers", .type = .AccessControlAllowHeaders, .http1 = "Access-Control-Allow-Headers", .http2 = "access-control-allow-headers" },
-        .{.value = "Access-Control-Allow-Methods", .type = .AccessControlAllowMethods, .http1 = "Access-Control-Allow-Methods", .http2 = "access-control-allow-methods" },
-        .{.value = "Access-Control-Allow-Origin", .type = .AccessControlAllowOrigin, .http1 = "Access-Control-Allow-Origin", .http2 = "access-control-allow-origin" },
-        .{.value = "Access-Control-Expose-Headers", .type = .AccessControlExposeHeaders, .http1 = "Access-Control-Expose-Headers", .http2 = "access-control-expose-headers" },
-        .{.value = "Access-Control-Max-Age", .type = .AccessControlMaxAge, .http1 = "Access-Control-Max-Age", .http2 = "access-control-max-age" },
-        .{.value = "Access-Control-Request-Headers", .type = .AccessControlRequestHeaders, .http1 = "Access-Control-Request-Headers", .http2 = "access-control-request-headers" },
-        .{.value = "Access-Control-Request-Method", .type = .AccessControlRequestMethod, .http1 = "Access-Control-Request-Method", .http2 = "access-control-request-method" },
-        .{.value = "Age", .type = .Age, .http1 = "Age", .http2 = "age" },
-        .{.value = "Allow", .type = .Allow, .http1 = "Allow", .http2 = "allow" },
-        .{.value = "Alt-Svc", .type = .AltSvc, .http1 = "Alt-Svc", .http2 = "alt-svc" },
-        .{.value = "Authorization", .type = .Authorization, .http1 = "Authorization", .http2 = "authorization" },
-        .{.value = "Cache-Control", .type = .CacheControl, .http1 = "Cache-Control", .http2 = "cache-control" },
-        .{.value = "Connection", .type = .Connection, .http1 = "Connection", .http2 = "connection" },
-        .{.value = "Content-Length", .type = .ContentLength, .http1 = "Content-Length", .http2 = "content-length" },
-        .{.value = "Content-Location", .type = .ContentLocation, .http1 = "Content-Location", .http2 = "content-location" },
-        .{.value = "Content-Range", .type = .ContentRange, .http1 = "Content-Range", .http2 = "content-range" },
-        .{.value = "Content-Security-Policy", .type = .ContentSecurityPolicy, .http1 = "Content-Security-Policy", .http2 = "content-security-policy" },
-        .{.value = "Content-Security-Policy-Report-Only", .type = .ContentSecurityPolicyReportOnly, .http1 = "Content-Security-Policy-Report-Only", .http2 = "content-security-policy-report-only" },
-        .{.value = "Content-Type", .type = .ContentType, .http1 = "Content-Type", .http2 = "content-type" },
-        .{.value = "Cookie", .type = .Cookie, .http1 = "Cookie", .http2 = "cookie" },
-        .{.value = "I-Am-A-Custom-Header", .type = .Custom, .http1 = "I-Am-A-Custom-Header", .http2 = "I-Am-A-Custom-Header" },
-        .{.value = "Dnt", .type = .Dnt, .http1 = "Dnt", .http2 = "dnt" },
-        .{.value = "Date", .type = .Date, .http1 = "Date", .http2 = "date" },
-        .{.value = "Etag", .type = .Etag, .http1 = "Etag", .http2 = "etag" },
-        .{.value = "Expect", .type = .Expect, .http1 = "Expect", .http2 = "expect" },
-        .{.value = "Expires", .type = .Expires, .http1 = "Expires", .http2 = "expires" },
-        .{.value = "Forwarded", .type = .Forwarded, .http1 = "Forwarded", .http2 = "forwarded" },
-        .{.value = "From", .type = .From, .http1 = "From", .http2 = "from" },
-        .{.value = "Host", .type = .Host, .http1 = "Host", .http2 = "host" },
-        .{.value = "If-Match", .type = .IfMatch, .http1 = "If-Match", .http2 = "if-match" },
-        .{.value = "If-Modified-Since", .type = .IfModifiedSince, .http1 = "If-Modified-Since", .http2 = "if-modified-since" },
-        .{.value = "If-None-Match", .type = .IfNoneMatch, .http1 = "If-None-Match", .http2 = "if-none-match" },
-        .{.value = "If-Range", .type = .IfRange, .http1 = "If-Range", .http2 = "if-range" },
-        .{.value = "If-Unmodified-Since", .type = .IfUnmodifiedSince, .http1 = "If-Unmodified-Since", .http2 = "if-unmodified-since" },
-        .{.value = "Last-Modified", .type = .LastModified, .http1 = "Last-Modified", .http2 = "last-modified" },
-        .{.value = "Link", .type = .Link, .http1 = "Link", .http2 = "link" },
-        .{.value = "Location", .type = .Location, .http1 = "Location", .http2 = "location" },
-        .{.value = "Max-Forwards", .type = .MaxForwards, .http1 = "Max-Forwards", .http2 = "max-forwards" },
-        .{.value = "Origin", .type = .Origin, .http1 = "Origin", .http2 = "origin" },
-        .{.value = "Pragma", .type = .Pragma, .http1 = "Pragma", .http2 = "pragma" },
-        .{.value = "Proxy-Authenticate", .type = .ProxyAuthenticate, .http1 = "Proxy-Authenticate", .http2 = "proxy-authenticate" },
-        .{.value = "Proxy-Authorization", .type = .ProxyAuthorization, .http1 = "Proxy-Authorization", .http2 = "proxy-authorization" },
-        .{.value = "Public-Key-Pins", .type = .PublicKeyPins, .http1 = "Public-Key-Pins", .http2 = "public-key-pins" },
-        .{.value = "Range", .type = .Range, .http1 = "Range", .http2 = "range" },
-        .{.value = "Referer", .type = .Referer, .http1 = "Referer", .http2 = "referer" },
-        .{.value = "Referrer-Policy", .type = .ReferrerPolicy, .http1 = "Referrer-Policy", .http2 = "referrer-policy" },
-        .{.value = "Refresh", .type = .Refresh, .http1 = "Refresh", .http2 = "refresh" },
-        .{.value = "Retry-After", .type = .RetryAfter, .http1 = "Retry-After", .http2 = "retry-after" },
-        .{.value = "Sec-WebSocket-Accept", .type = .SecWebSocketAccept, .http1 = "Sec-WebSocket-Accept", .http2 = "sec-websocket-accept" },
-        .{.value = "Sec-WebSocket-Extensions", .type = .SecWebSocketExtensions, .http1 = "Sec-WebSocket-Extensions", .http2 = "sec-websocket-extensions" },
-        .{.value = "Sec-WebSocket-Key", .type = .SecWebSocketKey, .http1 = "Sec-WebSocket-Key", .http2 = "sec-websocket-key" },
-        .{.value = "Sec-WebSocket-Protocol", .type = .SecWebSocketProtocol, .http1 = "Sec-WebSocket-Protocol", .http2 = "sec-websocket-protocol" },
-        .{.value = "Sec-WebSocket-Version", .type = .SecWebSocketVersion, .http1 = "Sec-WebSocket-Version", .http2 = "sec-websocket-version" },
-        .{.value = "Server", .type = .Server, .http1 = "Server", .http2 = "server" },
-        .{.value = "Set-Cookie", .type = .SetCookie, .http1 = "Set-Cookie", .http2 = "set-cookie" },
-        .{.value = "Strict-Transport-Security", .type = .StrictTransportSecurity, .http1 = "Strict-Transport-Security", .http2 = "strict-transport-security" },
-        .{.value = "Te", .type = .Te, .http1 = "Te", .http2 = "te" },
-        .{.value = "Trailer", .type = .Trailer, .http1 = "Trailer", .http2 = "trailer" },
-        .{.value = "Transfer-Encoding", .type = .TransferEncoding, .http1 = "Transfer-Encoding", .http2 = "transfer-encoding" },
-        .{.value = "User-Agent", .type = .UserAgent, .http1 = "User-Agent", .http2 = "user-agent" },
-        .{.value = "Upgrade", .type = .Upgrade, .http1 = "Upgrade", .http2 = "upgrade" },
-        .{.value = "Upgrade-Insecure-Requests", .type = .UpgradeInsecureRequests, .http1 = "Upgrade-Insecure-Requests", .http2 = "upgrade-insecure-requests" },
-        .{.value = "Vary", .type = .Vary, .http1 = "Vary", .http2 = "vary" },
-        .{.value = "Via", .type = .Via, .http1 = "Via", .http2 = "via" },
-        .{.value = "Warning", .type = .Warning, .http1 = "Warning", .http2 = "warning" },
-        .{.value = "WWW-Authenticate", .type = .WwwAuthenticate, .http1 = "WWW-Authenticate", .http2 = "www-authenticate" },
-        .{.value = "X-Content-Type-Options", .type = .XContentTypeOptions, .http1 = "X-Content-Type-Options", .http2 = "x-content-type-options" },
-        .{.value = "X-DNS-Prefetch-Control", .type = .XDnsPrefetchControl, .http1 = "X-DNS-Prefetch-Control", .http2 = "x-dns-prefetch-control" },
-        .{.value = "X-Frame-Options", .type = .XFrameOptions, .http1 = "X-Frame-Options", .http2 = "x-frame-options" },
-        .{.value = "X-XSS-Protection", .type = .XXssProtection, .http1 = "X-XSS-Protection", .http2 = "x-xss-protection" },
+    var cases = [_]Case{
+        .{ .value = "Accept", .type = .Accept, .http1 = "Accept", .http2 = "accept" },
+        .{ .value = "Accept-Charset", .type = .AcceptCharset, .http1 = "Accept-Charset", .http2 = "accept-charset" },
+        .{ .value = "Accept-Encoding", .type = .AcceptEncoding, .http1 = "Accept-Encoding", .http2 = "accept-encoding" },
+        .{ .value = "Accept-Language", .type = .AcceptLanguage, .http1 = "Accept-Language", .http2 = "accept-language" },
+        .{ .value = "Accept-Ranges", .type = .AcceptRanges, .http1 = "Accept-Ranges", .http2 = "accept-ranges" },
+        .{ .value = "Access-Control-Allow-Credentials", .type = .AccessControlAllowCredentials, .http1 = "Access-Control-Allow-Credentials", .http2 = "access-control-allow-credentials" },
+        .{ .value = "Access-Control-Allow-Headers", .type = .AccessControlAllowHeaders, .http1 = "Access-Control-Allow-Headers", .http2 = "access-control-allow-headers" },
+        .{ .value = "Access-Control-Allow-Methods", .type = .AccessControlAllowMethods, .http1 = "Access-Control-Allow-Methods", .http2 = "access-control-allow-methods" },
+        .{ .value = "Access-Control-Allow-Origin", .type = .AccessControlAllowOrigin, .http1 = "Access-Control-Allow-Origin", .http2 = "access-control-allow-origin" },
+        .{ .value = "Access-Control-Expose-Headers", .type = .AccessControlExposeHeaders, .http1 = "Access-Control-Expose-Headers", .http2 = "access-control-expose-headers" },
+        .{ .value = "Access-Control-Max-Age", .type = .AccessControlMaxAge, .http1 = "Access-Control-Max-Age", .http2 = "access-control-max-age" },
+        .{ .value = "Access-Control-Request-Headers", .type = .AccessControlRequestHeaders, .http1 = "Access-Control-Request-Headers", .http2 = "access-control-request-headers" },
+        .{ .value = "Access-Control-Request-Method", .type = .AccessControlRequestMethod, .http1 = "Access-Control-Request-Method", .http2 = "access-control-request-method" },
+        .{ .value = "Age", .type = .Age, .http1 = "Age", .http2 = "age" },
+        .{ .value = "Allow", .type = .Allow, .http1 = "Allow", .http2 = "allow" },
+        .{ .value = "Alt-Svc", .type = .AltSvc, .http1 = "Alt-Svc", .http2 = "alt-svc" },
+        .{ .value = "Authorization", .type = .Authorization, .http1 = "Authorization", .http2 = "authorization" },
+        .{ .value = "Cache-Control", .type = .CacheControl, .http1 = "Cache-Control", .http2 = "cache-control" },
+        .{ .value = "Connection", .type = .Connection, .http1 = "Connection", .http2 = "connection" },
+        .{ .value = "Content-Length", .type = .ContentLength, .http1 = "Content-Length", .http2 = "content-length" },
+        .{ .value = "Content-Location", .type = .ContentLocation, .http1 = "Content-Location", .http2 = "content-location" },
+        .{ .value = "Content-Range", .type = .ContentRange, .http1 = "Content-Range", .http2 = "content-range" },
+        .{ .value = "Content-Security-Policy", .type = .ContentSecurityPolicy, .http1 = "Content-Security-Policy", .http2 = "content-security-policy" },
+        .{ .value = "Content-Security-Policy-Report-Only", .type = .ContentSecurityPolicyReportOnly, .http1 = "Content-Security-Policy-Report-Only", .http2 = "content-security-policy-report-only" },
+        .{ .value = "Content-Type", .type = .ContentType, .http1 = "Content-Type", .http2 = "content-type" },
+        .{ .value = "Cookie", .type = .Cookie, .http1 = "Cookie", .http2 = "cookie" },
+        .{ .value = "I-Am-A-Custom-Header", .type = .Custom, .http1 = "I-Am-A-Custom-Header", .http2 = "I-Am-A-Custom-Header" },
+        .{ .value = "Dnt", .type = .Dnt, .http1 = "Dnt", .http2 = "dnt" },
+        .{ .value = "Date", .type = .Date, .http1 = "Date", .http2 = "date" },
+        .{ .value = "Etag", .type = .Etag, .http1 = "Etag", .http2 = "etag" },
+        .{ .value = "Expect", .type = .Expect, .http1 = "Expect", .http2 = "expect" },
+        .{ .value = "Expires", .type = .Expires, .http1 = "Expires", .http2 = "expires" },
+        .{ .value = "Forwarded", .type = .Forwarded, .http1 = "Forwarded", .http2 = "forwarded" },
+        .{ .value = "From", .type = .From, .http1 = "From", .http2 = "from" },
+        .{ .value = "Host", .type = .Host, .http1 = "Host", .http2 = "host" },
+        .{ .value = "If-Match", .type = .IfMatch, .http1 = "If-Match", .http2 = "if-match" },
+        .{ .value = "If-Modified-Since", .type = .IfModifiedSince, .http1 = "If-Modified-Since", .http2 = "if-modified-since" },
+        .{ .value = "If-None-Match", .type = .IfNoneMatch, .http1 = "If-None-Match", .http2 = "if-none-match" },
+        .{ .value = "If-Range", .type = .IfRange, .http1 = "If-Range", .http2 = "if-range" },
+        .{ .value = "If-Unmodified-Since", .type = .IfUnmodifiedSince, .http1 = "If-Unmodified-Since", .http2 = "if-unmodified-since" },
+        .{ .value = "Last-Modified", .type = .LastModified, .http1 = "Last-Modified", .http2 = "last-modified" },
+        .{ .value = "Link", .type = .Link, .http1 = "Link", .http2 = "link" },
+        .{ .value = "Location", .type = .Location, .http1 = "Location", .http2 = "location" },
+        .{ .value = "Max-Forwards", .type = .MaxForwards, .http1 = "Max-Forwards", .http2 = "max-forwards" },
+        .{ .value = "Origin", .type = .Origin, .http1 = "Origin", .http2 = "origin" },
+        .{ .value = "Pragma", .type = .Pragma, .http1 = "Pragma", .http2 = "pragma" },
+        .{ .value = "Proxy-Authenticate", .type = .ProxyAuthenticate, .http1 = "Proxy-Authenticate", .http2 = "proxy-authenticate" },
+        .{ .value = "Proxy-Authorization", .type = .ProxyAuthorization, .http1 = "Proxy-Authorization", .http2 = "proxy-authorization" },
+        .{ .value = "Public-Key-Pins", .type = .PublicKeyPins, .http1 = "Public-Key-Pins", .http2 = "public-key-pins" },
+        .{ .value = "Range", .type = .Range, .http1 = "Range", .http2 = "range" },
+        .{ .value = "Referer", .type = .Referer, .http1 = "Referer", .http2 = "referer" },
+        .{ .value = "Referrer-Policy", .type = .ReferrerPolicy, .http1 = "Referrer-Policy", .http2 = "referrer-policy" },
+        .{ .value = "Refresh", .type = .Refresh, .http1 = "Refresh", .http2 = "refresh" },
+        .{ .value = "Retry-After", .type = .RetryAfter, .http1 = "Retry-After", .http2 = "retry-after" },
+        .{ .value = "Sec-WebSocket-Accept", .type = .SecWebSocketAccept, .http1 = "Sec-WebSocket-Accept", .http2 = "sec-websocket-accept" },
+        .{ .value = "Sec-WebSocket-Extensions", .type = .SecWebSocketExtensions, .http1 = "Sec-WebSocket-Extensions", .http2 = "sec-websocket-extensions" },
+        .{ .value = "Sec-WebSocket-Key", .type = .SecWebSocketKey, .http1 = "Sec-WebSocket-Key", .http2 = "sec-websocket-key" },
+        .{ .value = "Sec-WebSocket-Protocol", .type = .SecWebSocketProtocol, .http1 = "Sec-WebSocket-Protocol", .http2 = "sec-websocket-protocol" },
+        .{ .value = "Sec-WebSocket-Version", .type = .SecWebSocketVersion, .http1 = "Sec-WebSocket-Version", .http2 = "sec-websocket-version" },
+        .{ .value = "Server", .type = .Server, .http1 = "Server", .http2 = "server" },
+        .{ .value = "Set-Cookie", .type = .SetCookie, .http1 = "Set-Cookie", .http2 = "set-cookie" },
+        .{ .value = "Strict-Transport-Security", .type = .StrictTransportSecurity, .http1 = "Strict-Transport-Security", .http2 = "strict-transport-security" },
+        .{ .value = "Te", .type = .Te, .http1 = "Te", .http2 = "te" },
+        .{ .value = "Trailer", .type = .Trailer, .http1 = "Trailer", .http2 = "trailer" },
+        .{ .value = "Transfer-Encoding", .type = .TransferEncoding, .http1 = "Transfer-Encoding", .http2 = "transfer-encoding" },
+        .{ .value = "User-Agent", .type = .UserAgent, .http1 = "User-Agent", .http2 = "user-agent" },
+        .{ .value = "Upgrade", .type = .Upgrade, .http1 = "Upgrade", .http2 = "upgrade" },
+        .{ .value = "Upgrade-Insecure-Requests", .type = .UpgradeInsecureRequests, .http1 = "Upgrade-Insecure-Requests", .http2 = "upgrade-insecure-requests" },
+        .{ .value = "Vary", .type = .Vary, .http1 = "Vary", .http2 = "vary" },
+        .{ .value = "Via", .type = .Via, .http1 = "Via", .http2 = "via" },
+        .{ .value = "Warning", .type = .Warning, .http1 = "Warning", .http2 = "warning" },
+        .{ .value = "WWW-Authenticate", .type = .WwwAuthenticate, .http1 = "WWW-Authenticate", .http2 = "www-authenticate" },
+        .{ .value = "X-Content-Type-Options", .type = .XContentTypeOptions, .http1 = "X-Content-Type-Options", .http2 = "x-content-type-options" },
+        .{ .value = "X-DNS-Prefetch-Control", .type = .XDnsPrefetchControl, .http1 = "X-DNS-Prefetch-Control", .http2 = "x-dns-prefetch-control" },
+        .{ .value = "X-Frame-Options", .type = .XFrameOptions, .http1 = "X-Frame-Options", .http2 = "x-frame-options" },
+        .{ .value = "X-XSS-Protection", .type = .XXssProtection, .http1 = "X-XSS-Protection", .http2 = "x-xss-protection" },
     };
 
     for (cases) |case| {

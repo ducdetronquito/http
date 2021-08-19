@@ -9,7 +9,7 @@ pub const Header = struct {
     pub fn as_slice(comptime headers: anytype) []Header {
         const typeof = @TypeOf(headers);
         const typeinfo = @typeInfo(typeof);
-        switch(typeinfo) {
+        switch (typeinfo) {
             .Struct => |obj| {
                 comptime {
                     var result: [obj.fields.len]Header = undefined;
@@ -26,18 +26,15 @@ pub const Header = struct {
                         var _type = HeaderType.from_bytes(headers[i][0]);
                         var name = headers[i][0];
                         var value = headers[i][1];
-                        result[i] = Header { .name = .{.type = _type, .value = name}, .value = value};
+                        result[i] = Header{ .name = .{ .type = _type, .value = name }, .value = value };
                         i += 1;
                     }
                     return &result;
                 }
             },
             else => {
-                @compileError(
-                    "The parameter type must be an anonymous list literal.\n"
-                    ++ "Ex: Header.as_slice(.{.{\"Gotta-Go\", \"Fast!\"}});"
-                );
-            }
+                @compileError("The parameter type must be an anonymous list literal.\n" ++ "Ex: Header.as_slice(.{.{\"Gotta-Go\", \"Fast!\"}});");
+            },
         }
     }
 };
@@ -48,8 +45,8 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 
 test "AsSlice" {
     var result = Header.as_slice(.{
-        .{"Content-Length", "9000"},
-        .{"Gotta-Go", "Fast!"},
+        .{ "Content-Length", "9000" },
+        .{ "Gotta-Go", "Fast!" },
     });
     try expect(result.len == 2);
     try expect(result[0].name.type == .ContentLength);

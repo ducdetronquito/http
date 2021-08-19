@@ -1,4 +1,4 @@
-pub const StatusCodeError = error {
+pub const StatusCodeError = error{
     Invalid,
 };
 
@@ -33,7 +33,7 @@ pub const StatusCode = enum(u16) {
     Gone = 410,
     LengthRequired = 411,
     PreconditionFailed = 412,
-    PayloadTooLarge= 413,
+    PayloadTooLarge = 413,
     UriTooLong = 414,
     UnsupportedMediaType = 415,
     RangeNotSatisfiable = 416,
@@ -66,8 +66,6 @@ pub const StatusCode = enum(u16) {
         return @intToEnum(StatusCode, value);
     }
 };
-
-
 
 const expectError = @import("std").testing.expectError;
 
