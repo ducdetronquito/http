@@ -1,3 +1,9 @@
 # Build artifacts
 zig-cache/
 *.log
+
+# Gyro
+deps.zig
+.gyro
+gyro.lock
+zig-out/

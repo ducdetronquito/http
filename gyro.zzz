@@ -1,0 +1,18 @@
+pkgs:
+  http:
+    version: 0.1.0
+    description: "HTTP core types for Zig 🦴"
+    license: 0BSD
+    source_url: "https://github.com/ducdetronquito/http"
+    tags:
+      http
+
+    root: src/main.zig
+    files:
+      README.md
+      LICENSE
+      src/*.zig
+      src/headers/*.zig
+      src/uri/*.zig
+      src/uri/LICENSE
+      src/uri/README.md
