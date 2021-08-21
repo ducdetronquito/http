@@ -2,7 +2,7 @@
 
 HTTP core types for Zig inspired by Rust [http](https://github.com/hyperium/http).
 
-[![Build Status](https://api.travis-ci.org/ducdetronquito/http.svg?branch=master)](https://travis-ci.org/ducdetronquito/http) [![License](https://img.shields.io/badge/License-BSD%200--Clause-ff69b4.svg)](https://github.com/ducdetronquito/http#license) [![Requirements](https://img.shields.io/badge/zig-0.8.0-orange)](https://ziglang.org/)
+[![Build Status](https://api.travis-ci.org/ducdetronquito/http.svg?branch=master)](https://travis-ci.org/ducdetronquito/http) [![License](https://img.shields.io/badge/License-BSD%200--Clause-ff69b4.svg)](https://github.com/ducdetronquito/http#license) [![Requirements](https://img.shields.io/badge/zig-master_(19.08.2021)-orange)](https://ziglang.org/)
 
 
 ## Usage
@@ -277,12 +277,6 @@ A lot; the list is available on [MDN](https://developer.mozilla.org/fr/docs/Web/
 ##### `ResponseError`
 
 - OutOfMemory
-
-
-## Requirements
-
-To work with *http* you will need the latest stable version of Zig, which is currently Zig 0.8.0.
-
 
 ## License
 
