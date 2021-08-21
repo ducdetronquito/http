@@ -163,7 +163,7 @@ pub const Uri = struct {
         var list = std.ArrayList([]const u8).init(allocator);
         errdefer list.deinit();
 
-        var it = mem.tokenize(path, "/");
+        var it = mem.tokenize(u8, path, "/");
         while (it.next()) |p| {
             if (mem.eql(u8, p, ".")) {
                 continue;

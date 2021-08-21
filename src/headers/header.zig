@@ -15,11 +15,11 @@ pub const Header = struct {
                     var result: [obj.fields.len]Header = undefined;
                     var i = 0;
                     while (i < obj.fields.len) {
-                        _ = HeaderName.parse(headers[i][0]) catch |err| {
+                        _ = HeaderName.parse(headers[i][0]) catch {
                             @compileError("Invalid header name: " ++ headers[i][0]);
                         };
 
-                        _ = HeaderValue.parse(headers[i][1]) catch |err| {
+                        _ = HeaderValue.parse(headers[i][1]) catch {
                             @compileError("Invalid header value: " ++ headers[i][1]);
                         };
 
