@@ -4,6 +4,13 @@ HTTP core types for Zig inspired by Rust [http](https://github.com/hyperium/http
 
 [![Build Status](https://api.travis-ci.org/ducdetronquito/http.svg?branch=master)](https://travis-ci.org/ducdetronquito/http) [![License](https://img.shields.io/badge/License-BSD%200--Clause-ff69b4.svg)](https://github.com/ducdetronquito/http#license) [![Requirements](https://img.shields.io/badge/zig-master_(19.08.2021)-orange)](https://ziglang.org/)
 
+## Installation
+
+*http* is available on [astrolabe.pm](https://astrolabe.pm/) via [gyro](https://github.com/mattnite/gyro)
+
+```
+gyro add ducdetronquito/http
+```
 
 ## Usage
 
