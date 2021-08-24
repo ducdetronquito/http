@@ -10,9 +10,9 @@ pkgs:
     root: src/main.zig
     files:
       README.md
-      LICENSE
+      LICENSE.txt
       src/*.zig
       src/headers/*.zig
       src/uri/*.zig
-      src/uri/LICENSE.txt
+      src/uri/LICENSE
       src/uri/README.md
