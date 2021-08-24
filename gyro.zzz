@@ -14,5 +14,5 @@ pkgs:
       src/*.zig
       src/headers/*.zig
       src/uri/*.zig
-      src/uri/LICENSE
+      src/uri/LICENSE.txt
       src/uri/README.md
