@@ -1,6 +1,6 @@
 pkgs:
   http:
-    version: 0.1.1
+    version: 0.1.2
     description: "HTTP core types for Zig 🦴"
     license: 0BSD
     source_url: "https://github.com/ducdetronquito/http"
