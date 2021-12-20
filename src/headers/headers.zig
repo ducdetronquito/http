@@ -9,12 +9,12 @@ const std = @import("std");
 const AllocationError = error{OutOfMemory};
 
 pub const Headers = struct {
-    allocator: *Allocator,
+    allocator: Allocator,
     _items: ArrayList(Header),
 
     pub const Error = error{ InvalidHeaderName, InvalidHeaderValue } || AllocationError;
 
-    pub fn init(allocator: *Allocator) Headers {
+    pub fn init(allocator: Allocator) Headers {
         return Headers{ .allocator = allocator, ._items = ArrayList(Header).init(allocator) };
     }
 
@@ -142,7 +142,7 @@ test "Append - Invalid header value" {
 
 test "Append - Out of memory" {
     var buffer: [1]u8 = undefined;
-    const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
+    const allocator = std.heap.FixedBufferAllocator.init(&buffer).allocator();
 
     var headers = Headers.init(allocator);
     defer headers.deinit();

@@ -23,7 +23,7 @@ pub const RequestBuilder = struct {
     _version: Version,
     headers: Headers,
 
-    pub fn default(allocator: *Allocator) RequestBuilder {
+    pub fn default(allocator: Allocator) RequestBuilder {
         return RequestBuilder{
             .build_error = null,
             ._method = Method.Get,
@@ -172,7 +172,7 @@ pub const Request = struct {
     headers: Headers,
     body: []const u8,
 
-    pub fn builder(allocator: *Allocator) RequestBuilder {
+    pub fn builder(allocator: Allocator) RequestBuilder {
         return RequestBuilder.default(allocator);
     }
 
@@ -243,7 +243,7 @@ test "Fail to build when the URI is invalid" {
 
 test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
-    const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
+    const allocator = std.heap.FixedBufferAllocator.init(&buffer).allocator();
     const failure = Request.builder(allocator)
         .uri("https://ziglang.org/")
         .header("GOTTA-GO", "FAST")

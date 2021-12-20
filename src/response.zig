@@ -16,7 +16,7 @@ pub const ResponseBuilder = struct {
     _status: StatusCode,
     headers: Headers,
 
-    pub fn default(allocator: *Allocator) ResponseBuilder {
+    pub fn default(allocator: Allocator) ResponseBuilder {
         return ResponseBuilder{
             .build_error = null,
             ._version = Version.Http11,
@@ -72,7 +72,7 @@ pub const Response = struct {
     headers: Headers,
     body: []const u8,
 
-    pub fn builder(allocator: *Allocator) ResponseBuilder {
+    pub fn builder(allocator: Allocator) ResponseBuilder {
         return ResponseBuilder.default(allocator);
     }
 
@@ -141,7 +141,7 @@ test "Free headers memory on error" {
 
 test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
-    const allocator = &std.heap.FixedBufferAllocator.init(&buffer).allocator;
+    const allocator = std.heap.FixedBufferAllocator.init(&buffer).allocator();
     const failure = Response.builder(allocator)
         .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");

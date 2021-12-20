@@ -63,7 +63,7 @@ pub const Uri = struct {
     len: usize,
 
     /// map query string into a hashmap of key value pairs with no value being an empty string
-    pub fn mapQuery(allocator: *Allocator, query: []const u8) MapError!ValueMap {
+    pub fn mapQuery(allocator: Allocator, query: []const u8) MapError!ValueMap {
         if (query.len == 0) {
             return error.NoQuery;
         }
@@ -94,7 +94,7 @@ pub const Uri = struct {
     }
 
     /// decode path if it is percent encoded
-    pub fn decode(allocator: *Allocator, path: []const u8) EncodeError!?[]u8 {
+    pub fn decode(allocator: Allocator, path: []const u8) EncodeError!?[]u8 {
         var ret: ?[]u8 = null;
         var ret_index: usize = 0;
         var i: usize = 0;
@@ -130,7 +130,7 @@ pub const Uri = struct {
     }
 
     /// percent encode if path contains characters not allowed in paths
-    pub fn encode(allocator: *Allocator, path: []const u8) EncodeError!?[]u8 {
+    pub fn encode(allocator: Allocator, path: []const u8) EncodeError!?[]u8 {
         var ret: ?[]u8 = null;
         var ret_index: usize = 0;
         for (path) |c, i| {
@@ -158,7 +158,7 @@ pub const Uri = struct {
 
     /// resolves `path`, leaves trailing '/'
     /// assumes `path` to be valid
-    pub fn resolvePath(allocator: *Allocator, path: []const u8) error{OutOfMemory}![]u8 {
+    pub fn resolvePath(allocator: Allocator, path: []const u8) error{OutOfMemory}![]u8 {
         assert(path.len > 0);
         var list = std.ArrayList([]const u8).init(allocator);
         errdefer list.deinit();
@@ -568,7 +568,7 @@ test "Map query parameters" {
     try expectEqualStrings(uri.path, "/documentation/master/");
     try expectEqualStrings(uri.query, "test;1=true&false");
     try expectEqualStrings(uri.fragment, "toc-Introduction");
-    var map = try Uri.mapQuery(alloc, uri.query);
+    var map = try Uri.mapQuery(std.testing.allocator, uri.query);
     defer map.deinit();
     try expectEqualStrings(map.get("test").?, "");
     try expectEqualStrings(map.get("1").?, "true");
@@ -592,32 +592,40 @@ test "assume auth" {
     try expect(uri.len == 11);
 }
 
-var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-const alloc = &arena.allocator;
-
 test "Encode" {
-    const path = (try Uri.encode(alloc, "/안녕하세요.html")).?;
+    const path = (try Uri.encode(std.testing.allocator, "/안녕하세요.html")).?;
+    defer std.testing.allocator.free(path);
     try expectEqualStrings(path, "/%EC%95%88%EB%85%95%ED%95%98%EC%84%B8%EC%9A%94.html");
 }
 
 test "Decode" {
-    const path = (try Uri.decode(alloc, "/%EC%95%88%EB%85%95%ED%95%98%EC%84%B8%EC%9A%94.html")).?;
+    const path = (try Uri.decode(std.testing.allocator, "/%EC%95%88%EB%85%95%ED%95%98%EC%84%B8%EC%9A%94.html")).?;
+    defer std.testing.allocator.free(path);
     try expectEqualStrings(path, "/안녕하세요.html");
 }
 
 test "Resolve paths" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    const alloc = arena.allocator();
+
     var a = try Uri.resolvePath(alloc, "/a/b/..");
     try expectEqualStrings(a, "/a");
+
     a = try Uri.resolvePath(alloc, "/a/b/../");
     try expectEqualStrings(a, "/a/");
+
     a = try Uri.resolvePath(alloc, "/a/b/c/../d/../");
     try expectEqualStrings(a, "/a/b/");
+
     a = try Uri.resolvePath(alloc, "/a/b/c/../d/..");
     try expectEqualStrings(a, "/a/b");
+
     a = try Uri.resolvePath(alloc, "/a/b/c/../d/.././");
     try expectEqualStrings(a, "/a/b/");
+
     a = try Uri.resolvePath(alloc, "/a/b/c/../d/../.");
     try expectEqualStrings(a, "/a/b");
+
     a = try Uri.resolvePath(alloc, "/a/../../");
     try expectEqualStrings(a, "/");
 
