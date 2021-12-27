@@ -6,6 +6,14 @@ pub const Header = struct {
     name: HeaderName,
     value: []const u8,
 
+    pub const Error = HeaderName.Error || HeaderValue.Error;
+
+    pub fn init(name: []const u8, value: []const u8) !Header {
+        var _name = try HeaderName.parse(name);
+        var _value = try HeaderValue.parse(value);
+        return Header{ .name = _name, .value = _value };
+    }
+
     pub fn as_slice(comptime headers: anytype) []Header {
         const typeof = @TypeOf(headers);
         const typeinfo = @typeInfo(typeof);

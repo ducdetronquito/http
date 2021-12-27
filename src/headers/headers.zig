@@ -12,7 +12,7 @@ pub const Headers = struct {
     allocator: Allocator,
     _items: ArrayList(Header),
 
-    pub const Error = error{ InvalidHeaderName, InvalidHeaderValue } || AllocationError;
+    pub const Error = Header.Error || AllocationError;
 
     pub fn init(allocator: Allocator) Headers {
         return Headers{ .allocator = allocator, ._items = ArrayList(Header).init(allocator) };
@@ -22,11 +22,14 @@ pub const Headers = struct {
         self._items.deinit();
     }
 
-    pub fn append(self: *Headers, name: []const u8, value: []const u8) Error!void {
-        var _name = HeaderName.parse(name) catch return error.InvalidHeaderName;
-        var _value = HeaderValue.parse(value) catch return error.InvalidHeaderValue;
+    pub fn toOwnedSlice(self: *Headers) []Header {
+        var result = self._items.toOwnedSlice();
+        self.deinit();
+        return result;
+    }
 
-        try self._items.append(Header{ .name = _name, .value = _value });
+    pub fn append(self: *Headers, header: Header) AllocationError!void {
+        try self._items.append(header);
     }
 
     pub inline fn len(self: Headers) usize {
@@ -97,47 +100,14 @@ const expect = std.testing.expect;
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
-test "Append - Standard header" {
+test "Append - Success" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.append("Content-Length", "42");
+    const header = try Header.init("Content-Length", "42");
+    try headers.append(header);
 
     try expect(headers.len() == 1);
-    const header = headers.items()[0];
-    try expect(header.name.type == .ContentLength);
-    try expectEqualStrings(header.value, "42");
-}
-
-test "Append - Custom header" {
-    var headers = Headers.init(std.testing.allocator);
-    defer headers.deinit();
-
-    try headers.append("Gotta-Go", "Fast");
-
-    try expect(headers.len() == 1);
-    const header = headers.items()[0];
-    try expect(header.name.type == .Custom);
-    try expectEqualStrings(header.name.raw(), "Gotta-Go");
-    try expectEqualStrings(header.value, "Fast");
-}
-
-test "Append - Invalid header name" {
-    var headers = Headers.init(std.testing.allocator);
-    defer headers.deinit();
-
-    var failure = headers.append("Invalid Header", "yeah");
-
-    try expectError(error.InvalidHeaderName, failure);
-}
-
-test "Append - Invalid header value" {
-    var headers = Headers.init(std.testing.allocator);
-    defer headers.deinit();
-
-    var failure = headers.append("name", "I\nvalid");
-
-    try expectError(error.InvalidHeaderValue, failure);
 }
 
 test "Append - Out of memory" {
@@ -147,7 +117,9 @@ test "Append - Out of memory" {
     var headers = Headers.init(allocator);
     defer headers.deinit();
 
-    var failure = headers.append("Gotta-Go", "Fast");
+    const header = try Header.init("Gotta-Go", "Fast");
+    var failure = headers.append(header);
+
     try expectError(error.OutOfMemory, failure);
 }
 
@@ -162,7 +134,8 @@ test "Get - Standard header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.append("Content-Length", "10");
+    const header = try Header.init("Content-Length", "10");
+    try headers.append(header);
 
     var result = headers.get("Content-Length").?;
     try expectEqualStrings(result.value, "10");
@@ -172,7 +145,8 @@ test "Get - Custom header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.append("Gotta-Go", "Fast");
+    const header = try Header.init("Gotta-Go", "Fast");
+    try headers.append(header);
 
     var result = headers.get("Gotta-Go").?;
     try expectEqualStrings(result.value, "Fast");
@@ -191,8 +165,11 @@ test "List - Standard header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.append("Content-Length", "10");
-    try headers.append("Content-Length", "20");
+    const header = try Header.init("Content-Length", "10");
+    try headers.append(header);
+
+    const second_header = try Header.init("Content-Length", "20");
+    try headers.append(second_header);
 
     var result = try headers.list("Content-Length");
     defer std.testing.allocator.free(result);
@@ -206,8 +183,10 @@ test "List - Custom header" {
     var headers = Headers.init(std.testing.allocator);
     defer headers.deinit();
 
-    try headers.append("Gotta-Go", "Fast");
-    try headers.append("Gotta-Go", "Very Fast");
+    const header = try Header.init("Gotta-Go", "Fast");
+    try headers.append(header);
+    const second_header = try Header.init("Gotta-Go", "Very Fast");
+    try headers.append(second_header);
 
     var result = try headers.list("Gotta-Go");
     defer std.testing.allocator.free(result);

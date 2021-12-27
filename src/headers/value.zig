@@ -1,16 +1,16 @@
 pub const HeaderValue = struct {
-    const Error = error{
-        Invalid,
+    pub const Error = error{
+        InvalidHeaderValue,
     };
 
     pub fn parse(value: []const u8) Error![]const u8 {
         if (value.len == 0) {
-            return error.Invalid;
+            return error.InvalidHeaderValue;
         }
 
         for (value) |char| {
             if (!HEADER_VALUE_MAP[char]) {
-                return error.Invalid;
+                return error.InvalidHeaderValue;
             }
         }
         return value;
@@ -61,11 +61,11 @@ test "Parse - Success" {
 test "Parse - Invalid character returns an error" {
     const fail = HeaderValue.parse("A invalid\rcookie");
 
-    try expectError(error.Invalid, fail);
+    try expectError(error.InvalidHeaderValue, fail);
 }
 
 test "Parse - Empty value is invalid" {
     const fail = HeaderValue.parse("");
 
-    try expectError(error.Invalid, fail);
+    try expectError(error.InvalidHeaderValue, fail);
 }

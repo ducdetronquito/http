@@ -1,4 +1,5 @@
 const Allocator = std.mem.Allocator;
+const Header = @import("./headers/header.zig").Header;
 const Headers = @import("./headers/headers.zig").Headers;
 const Method = @import("methods.zig").Method;
 const std = @import("std");
@@ -87,7 +88,11 @@ pub const RequestBuilder = struct {
             return self;
         }
 
-        _ = self.headers.append(name, value) catch |err| {
+        const _header = Header.init(name, value) catch |err| {
+            self.build_error = err;
+            return self;
+        };
+        _ = self.headers.append(_header) catch |err| {
             self.build_error = err;
         };
         return self;
