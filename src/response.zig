@@ -86,7 +86,8 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Build with default values" {
-    var response = try Response.builder(std.testing.allocator).body("");
+    var builder = Response.builder(std.testing.allocator);
+    var response = try builder.body("");
     defer response.deinit();
 
     try expect(response.version == .Http11);
@@ -96,7 +97,8 @@ test "Build with default values" {
 }
 
 test "Build with specific values" {
-    var response = try Response.builder(std.testing.allocator)
+    var builder = Response.builder(std.testing.allocator);
+    var response = try builder
         .version(.Http11)
         .status(.ImATeapot)
         .header("GOTTA-GO", "FAST")
@@ -114,7 +116,8 @@ test "Build with specific values" {
 
 test "Build with a custom status code" {
     var custom_status = try StatusCode.from_u16(536);
-    var response = try Response.builder(std.testing.allocator)
+    var builder = Response.builder(std.testing.allocator);
+    var response = try builder
         .version(.Http11)
         .status(custom_status)
         .header("GOTTA-GO", "FAST")
@@ -131,7 +134,8 @@ test "Build with a custom status code" {
 }
 
 test "Free headers memory on error" {
-    const failure = Response.builder(std.testing.allocator)
+    var builder = Response.builder(std.testing.allocator);
+    const failure = builder
         .header("GOTTA-GO", "FAST")
         .header("INVALID HEADER", "")
         .body("");
@@ -141,8 +145,9 @@ test "Free headers memory on error" {
 
 test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
-    const allocator = std.heap.FixedBufferAllocator.init(&buffer).allocator();
-    const failure = Response.builder(allocator)
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var builder = Response.builder(fba.allocator());
+    const failure = builder
         .header("GOTTA-GO", "FAST")
         .body("ᕕ( ᐛ )ᕗ");
 

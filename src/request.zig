@@ -186,7 +186,8 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 const expectError = std.testing.expectError;
 
 test "Build with default values" {
-    var request = try Request.builder(std.testing.allocator)
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder
         .uri("https://ziglang.org/")
         .body("");
     defer request.deinit();
@@ -200,7 +201,8 @@ test "Build with default values" {
 }
 
 test "Build with specific values" {
-    var request = try Request.builder(std.testing.allocator)
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder
         .method(Method.Get)
         .uri("https://ziglang.org/")
         .version(.Http11)
@@ -220,7 +222,8 @@ test "Build with specific values" {
 }
 
 test "Build with a custom method" {
-    var request = try Request.builder(std.testing.allocator)
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder
         .method(Method{ .Custom = "LAUNCH-MISSILE" })
         .uri("https://ziglang.org/")
         .body("");
@@ -230,12 +233,14 @@ test "Build with a custom method" {
 }
 
 test "Fail to build when the URI is missing" {
-    const failure = Request.builder(std.testing.allocator).body("");
+    var builder = Request.builder(std.testing.allocator);
+    const failure = builder.body("");
     try expectError(error.UriRequired, failure);
 }
 
 test "Fail to build when the URI is invalid" {
-    const failure = Request.builder(std.testing.allocator)
+    var builder = Request.builder(std.testing.allocator);
+    const failure = builder
         .uri("")
         .body("");
     try expectError(error.EmptyUri, failure);
@@ -243,8 +248,9 @@ test "Fail to build when the URI is invalid" {
 
 test "Fail to build when out of memory" {
     var buffer: [100]u8 = undefined;
-    const allocator = std.heap.FixedBufferAllocator.init(&buffer).allocator();
-    const failure = Request.builder(allocator)
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var builder = Request.builder(fba.allocator());
+    const failure = builder
         .uri("https://ziglang.org/")
         .header("GOTTA-GO", "FAST")
         .body("");
@@ -253,7 +259,8 @@ test "Fail to build when out of memory" {
 }
 
 test "Free headers memory on error" {
-    const failure = Request.builder(std.testing.allocator)
+    var builder = Request.builder(std.testing.allocator);
+    const failure = builder
         .get("https://ziglang.org/")
         .header("GOTTA-GO", "FAST")
         .header("INVALID HEADER", "")
@@ -263,7 +270,8 @@ test "Free headers memory on error" {
 }
 
 test "Build a CONNECT request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).connect("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.connect("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Connect);
@@ -272,7 +280,8 @@ test "Build a CONNECT request with the shortcut method" {
 }
 
 test "Build a DELETE request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).delete("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.delete("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Delete);
@@ -281,7 +290,8 @@ test "Build a DELETE request with the shortcut method" {
 }
 
 test "Build a GET request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).get("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.get("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Get);
@@ -290,7 +300,8 @@ test "Build a GET request with the shortcut method" {
 }
 
 test "Build an HEAD request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).head("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.head("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Head);
@@ -299,7 +310,8 @@ test "Build an HEAD request with the shortcut method" {
 }
 
 test "Build an OPTIONS request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).options("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.options("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Options);
@@ -308,7 +320,8 @@ test "Build an OPTIONS request with the shortcut method" {
 }
 
 test "Build an PATCH request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).patch("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.patch("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Patch);
@@ -317,7 +330,8 @@ test "Build an PATCH request with the shortcut method" {
 }
 
 test "Build a POST request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).post("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.post("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Post);
@@ -326,7 +340,8 @@ test "Build a POST request with the shortcut method" {
 }
 
 test "Build a PUT request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).put("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.put("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Put);
@@ -335,7 +350,8 @@ test "Build a PUT request with the shortcut method" {
 }
 
 test "Build a TRACE request with the shortcut method" {
-    var request = try Request.builder(std.testing.allocator).trace("https://ziglang.org/").body("");
+    var builder = Request.builder(std.testing.allocator);
+    var request = try builder.trace("https://ziglang.org/").body("");
     defer request.deinit();
 
     try expect(request.method == .Trace);

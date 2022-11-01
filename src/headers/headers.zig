@@ -142,9 +142,9 @@ test "Append - Invalid header value" {
 
 test "Append - Out of memory" {
     var buffer: [1]u8 = undefined;
-    const allocator = std.heap.FixedBufferAllocator.init(&buffer).allocator();
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
 
-    var headers = Headers.init(allocator);
+    var headers = Headers.init(fba.allocator());
     defer headers.deinit();
 
     var failure = headers.append("Gotta-Go", "Fast");
