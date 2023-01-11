@@ -4,7 +4,7 @@ HTTP core types for Zig inspired by Rust [http](https://github.com/hyperium/http
 
 [![Build Status](https://api.travis-ci.org/ducdetronquito/http.svg?branch=master)](https://travis-ci.org/ducdetronquito/http) [![License](https://img.shields.io/badge/License-BSD%200--Clause-ff69b4.svg)](https://github.com/ducdetronquito/http#license) [![Requirements](https://img.shields.io/badge/zig-0.10.0-orange)](https://ziglang.org/)
 
-⚠️ I'm currently renovating an old house which does not allow me to work on [requestz](https://github.com/ducdetronquito/requestz/), [h11](https://github.com/ducdetronquito/h11/) and [http](https://github.com/ducdetronquito/http) as much as I would like to. Further development will likely to start again around december 2022. In the meantime, feel free to fork :)
+⚠️ I'm currently renovating an old house which does not allow me to work on [requestz](https://github.com/ducdetronquito/requestz/), [h11](https://github.com/ducdetronquito/h11/) and [http](https://github.com/ducdetronquito/http) anymore. Feel free to fork or borrow some ideas if there are any good ones :)
 
 
 ## Installation
